@@ -1,19 +1,12 @@
 package com.skripsi.produksi_apk.service;
 
 import com.skripsi.produksi_apk.entity.User;
-import com.skripsi.produksi_apk.model.LoginRequest;
 import com.skripsi.produksi_apk.repository.ProductionRepository;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestBody;
 
 @Service
 public class ProductionService {
@@ -42,33 +35,19 @@ public class ProductionService {
         return userRepository.save(user);
     }
 
-   public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
-        return userRepository.findByUsername(loginRequest.getUsername())
+   public String login(String username, String password) {
+        return userRepository.findByUsername(username)
             .map(user -> {
-                if (passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
-                    Map<String, Object> response = new HashMap<>();
-                    response.put("success", true);
-                    response.put("message", "Login Success");
-                    response.put("data", Map.of(
-                        "id", user.getId(),
-                        "username", user.getUsername(),
-                        "role", user.getRole()
-                    ));
-                    return ResponseEntity.ok(response);
+                if (passwordEncoder.matches(password, user.getPassword())) {
+                    return "true";
                 } else {
-                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body(Map.of(
-                            "success", false,
-                            "message", "Login failed! Username or password was wrong."
-                        ));
+                    return "false";
                 }
             })
-            .orElse(ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(Map.of(
-                    "success", false,
-                    "message", "Login failed! Username or password was wrong."
-                )));
+            .orElse("false");
     }
+
+
 
     public User getUser(String id) {
         return userRepository.findById(id).orElse(null);
