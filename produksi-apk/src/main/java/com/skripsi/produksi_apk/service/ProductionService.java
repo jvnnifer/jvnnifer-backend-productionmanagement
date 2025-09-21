@@ -3,11 +3,12 @@ package com.skripsi.produksi_apk.service;
 import com.skripsi.produksi_apk.entity.User;
 import com.skripsi.produksi_apk.repository.ProductionRepository;
 
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-
 @Service
 public class ProductionService {
 
@@ -35,19 +36,17 @@ public class ProductionService {
         return userRepository.save(user);
     }
 
-   public String login(String username, String password) {
-        return userRepository.findByUsername(username)
-            .map(user -> {
-                if (passwordEncoder.matches(password, user.getPassword())) {
-                    return "true";
-                } else {
-                    return "false";
-                }
-            })
-            .orElse("false");
+    public String login(String username, String password) {
+        Optional<User> optionalUser = userRepository.findByUsername(username);
+
+        if (optionalUser.isPresent()) {
+            User user = optionalUser.get();
+            if (passwordEncoder.matches(password, user.getPassword())) {
+                return user.getId();
+            }
+        }
+        return null;
     }
-
-
 
     public User getUser(String id) {
         return userRepository.findById(id).orElse(null);

@@ -1,5 +1,7 @@
 package com.skripsi.produksi_apk.controller;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -9,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.skripsi.produksi_apk.entity.User;
+import com.skripsi.produksi_apk.model.LoginRequest;
 import com.skripsi.produksi_apk.service.ProductionService;
 
 import org.springframework.web.bind.annotation.RequestParam;
@@ -36,8 +39,14 @@ public class ProductionController {
 
     // Login
     @PostMapping("/user/login")
-    public String login(@RequestParam String username, @RequestParam String password) {
-        return productionService.login(username, password);
+    public ResponseEntity<String> login(@RequestBody LoginRequest loginRequest) {
+        String userId = productionService.login(loginRequest.getUsername(), loginRequest.getPassword());
+        if (userId != null) {
+            return ResponseEntity.ok(userId);
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("Login failed. Username or password incorrect.");
+        }
     }
     
 
