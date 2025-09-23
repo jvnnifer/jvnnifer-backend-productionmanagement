@@ -1,8 +1,11 @@
 package com.skripsi.produksi_apk.service;
 
+import com.skripsi.produksi_apk.entity.Role;
 import com.skripsi.produksi_apk.entity.User;
-import com.skripsi.produksi_apk.repository.ProductionRepository;
+import com.skripsi.produksi_apk.repository.RoleRepository;
+import com.skripsi.produksi_apk.repository.UserRepository;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,11 +18,13 @@ public class ProductionService {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
-    private final ProductionRepository userRepository;
+    private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
-    public ProductionService(ProductionRepository userRepository) {
+    public ProductionService(UserRepository userRepository, RoleRepository roleRepository) {
         this.userRepository = userRepository;
+        this.roleRepository = roleRepository;
     }
 
     private String generateUserId() {
@@ -27,11 +32,14 @@ public class ProductionService {
         return "USR" + String.format("%03d", nextVal);
     }
 
-    public User registerUser(String username, String password, String role) {
+    public User registerUser(String username, String password, String roleId) {
         User user = new User();
         user.setId(generateUserId());
         user.setUsername(username);
         user.setPassword(passwordEncoder.encode(password));
+        Role role = roleRepository.findById(roleId)
+                .orElseThrow(() -> new RuntimeException("Role tidak ditemukan"));
+
         user.setRole(role);
         return userRepository.save(user);
     }
@@ -60,5 +68,12 @@ public class ProductionService {
             return userRepository.save(user);
         }).orElse(null);
     }
+
+    public List<Role> getAllRoles() {
+        return roleRepository.findAll();
+    }
+
+    // katalog item
+
 
 }

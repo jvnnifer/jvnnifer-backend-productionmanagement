@@ -1,5 +1,7 @@
 package com.skripsi.produksi_apk.controller;
 
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -10,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.skripsi.produksi_apk.entity.Role;
 import com.skripsi.produksi_apk.entity.User;
 import com.skripsi.produksi_apk.model.LoginRequest;
 import com.skripsi.produksi_apk.service.ProductionService;
@@ -33,8 +36,8 @@ public class ProductionController {
 
     // Register
     @PostMapping("/user/register")
-    public User register(@RequestParam String username, @RequestParam String password, @RequestParam String role) {
-        return productionService.registerUser(username, password, role);
+    public User register(@RequestParam String username, @RequestParam String password, @RequestParam String roleId) {
+        return productionService.registerUser(username, password, roleId);
     }
 
     // Login
@@ -60,6 +63,11 @@ public class ProductionController {
             @PathVariable String id,
             @RequestBody User updatedUser) {
         return productionService.updateUser(id, updatedUser);
+    }
+
+    @GetMapping("/roles")
+    public List<Role> getAllRoles() {
+        return productionService.getAllRoles();
     }
 
 }
