@@ -1,6 +1,9 @@
 package com.skripsi.produksi_apk.controller;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -39,15 +42,15 @@ public class ProductionController {
 
     // Login
     @PostMapping("/user/login")
-    public ResponseEntity<String> login(@RequestBody LoginRequest loginRequest) {
-        String userId = productionService.login(loginRequest.getUsername(), loginRequest.getPassword());
-        if (userId != null) {
-            return ResponseEntity.ok(userId);
+    public ResponseEntity<Map<String, Object>> login(@RequestBody Map<String, String> loginData) {
+        Map<String, Object> userMap = productionService.login(loginData);
+        if (userMap != null) {
+            return ResponseEntity.ok(userMap);
         } else {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body("Login failed. Username or password incorrect.");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
     }
+
     
 
     @GetMapping("/getuser/{id}")
@@ -69,8 +72,8 @@ public class ProductionController {
 
     // material
     @PostMapping("/material")
-    public Material insertMaterial(@RequestParam String materialName, @RequestParam int stock_qty, @RequestParam String unit) {
-        return productionService.insertMaterial(materialName, stock_qty, unit);
+    public Material insertMaterial(@RequestBody Material material) {
+        return productionService.insertMaterial(material);
     }
 
     @PostMapping("/update-material/{id}")
@@ -78,9 +81,9 @@ public class ProductionController {
         return productionService.updateMaterial(id, material);
     }
 
-    @GetMapping("/get-materials/{id}")
-    public Material getMaterial(@PathVariable String id) {
-        return productionService.getMaterial(id);
+    @GetMapping("/get-materials")
+    public List<Material> getMaterial() {
+        return productionService.getAllMaterials();
     }
 
     @PostMapping("/delete-material/{id}")

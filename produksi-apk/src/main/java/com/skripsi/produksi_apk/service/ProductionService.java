@@ -4,20 +4,25 @@ import com.skripsi.produksi_apk.entity.CatalogItem;
 import com.skripsi.produksi_apk.entity.Material;
 import com.skripsi.produksi_apk.entity.Role;
 import com.skripsi.produksi_apk.entity.User;
+import com.skripsi.produksi_apk.model.LoginRequest;
 import com.skripsi.produksi_apk.repository.CatalogItemRepository;
 import com.skripsi.produksi_apk.repository.MaterialRepository;
 import com.skripsi.produksi_apk.repository.RoleRepository;
 import com.skripsi.produksi_apk.repository.UserRepository;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
-import javax.xml.catalog.Catalog;
-
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 @Service
 public class ProductionService {
 
@@ -60,42 +65,58 @@ public class ProductionService {
         return userRepository.save(user);
     }
 
-    public String login(String username, String password) {
+    public Map<String, Object> login(Map<String, String> loginData) {
+        String username = loginData.get("username");
+        String password = loginData.get("password");
+
         Optional<User> optionalUser = userRepository.findByUsername(username);
 
         if (optionalUser.isPresent()) {
             User user = optionalUser.get();
             if (passwordEncoder.matches(password, user.getPassword())) {
-                return user.getId();
+                Map<String, Object> result = new HashMap<>();
+                result.put("id", user.getId());
+                result.put("username", user.getUsername());
+                result.put("roleId", user.getRole().getId()); // asumsi User punya getRole()
+                return result;
             }
         }
         return null;
     }
+
+
 
     public User getUser(String id) {
         return userRepository.findById(id).orElse(null);
     }
 
     public User updateUser(String id, User updatedUser) {
-        return userRepository.findById(id).map(user -> {
+        Optional<User> optionalUser = userRepository.findById(id);
+        if(optionalUser.isPresent()) {
+            User user = optionalUser.get();
             user.setUsername(updatedUser.getUsername());
-            user.setPassword(passwordEncoder.encode(updatedUser.getPassword()));
+            user.setPassword(updatedUser.getPassword());
             user.setRole(updatedUser.getRole());
             return userRepository.save(user);
-        }).orElse(null);
+        } else {
+            throw new RuntimeException("User not found");
+        }
     }
 
     public List<Role> getAllRoles() {
         return roleRepository.findByIsOwnerNot(1);
     }
 
+    public List<Material> getAllMaterials() {
+        return materialRepository.findAll();
+    }
+
     // material
-    public Material insertMaterial(String materialName, int stock_qty, String unit) {
-        Material material = new Material();
+    public Material insertMaterial(Material material) {
         material.setId(generateMaterialId());
-        material.setStockQty(stock_qty);
-        material.setUnit(unit);
-        material.setMaterialName(materialName);
+        material.setStockQty(material.getStockQty());
+        material.setUnit(material.getUnit());
+        material.setMaterialName(material.getMaterialName());
         return materialRepository.save(material);
     }
 
