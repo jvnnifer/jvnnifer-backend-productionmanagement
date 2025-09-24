@@ -1,12 +1,18 @@
 package com.skripsi.produksi_apk.service;
 
+import com.skripsi.produksi_apk.entity.CatalogItem;
+import com.skripsi.produksi_apk.entity.Material;
 import com.skripsi.produksi_apk.entity.Role;
 import com.skripsi.produksi_apk.entity.User;
+import com.skripsi.produksi_apk.repository.CatalogItemRepository;
+import com.skripsi.produksi_apk.repository.MaterialRepository;
 import com.skripsi.produksi_apk.repository.RoleRepository;
 import com.skripsi.produksi_apk.repository.UserRepository;
 
 import java.util.List;
 import java.util.Optional;
+
+import javax.xml.catalog.Catalog;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -20,16 +26,26 @@ public class ProductionService {
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
+    private final MaterialRepository materialRepository;
+    private final CatalogItemRepository catalogItemRepository;
+
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
-    public ProductionService(UserRepository userRepository, RoleRepository roleRepository) {
+    public ProductionService(UserRepository userRepository, RoleRepository roleRepository, MaterialRepository materialRepository, CatalogItemRepository catalogItemRepository) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
+        this.materialRepository = materialRepository;
+        this.catalogItemRepository = catalogItemRepository;
     }
 
     private String generateUserId() {
         Long nextVal = jdbcTemplate.queryForObject("SELECT nextval('user_seq')", Long.class);
         return "USR" + String.format("%03d", nextVal);
+    }
+
+    private String generateMaterialId() {
+        Long nextVal = jdbcTemplate.queryForObject("SELECT nextval('material_seq')", Long.class);
+        return "MAT" + String.format("%03d", nextVal);
     }
 
     public User registerUser(String username, String password, String roleId) {
@@ -38,7 +54,7 @@ public class ProductionService {
         user.setUsername(username);
         user.setPassword(passwordEncoder.encode(password));
         Role role = roleRepository.findById(roleId)
-                .orElseThrow(() -> new RuntimeException("Role tidak ditemukan"));
+                .orElseThrow(() -> new RuntimeException("Role not found"));
 
         user.setRole(role);
         return userRepository.save(user);
@@ -73,7 +89,39 @@ public class ProductionService {
         return roleRepository.findByIsOwnerNot(1);
     }
 
-    // katalog item
+    // material
+    public Material insertMaterial(String materialName, int stock_qty, String unit) {
+        Material material = new Material();
+        material.setId(generateMaterialId());
+        material.setStockQty(stock_qty);
+        material.setUnit(unit);
+        material.setMaterialName(materialName);
+        return materialRepository.save(material);
+    }
 
+    public Material updateMaterial(String id, Material updatedMaterial) {
+        return materialRepository.findById(id).map(material -> {
+            material.setStockQty(updatedMaterial.getStockQty());
+            material.setMaterialName(updatedMaterial.getMaterialName());
+            material.setUnit(updatedMaterial.getUnit());
+            return materialRepository.save(material);
+        }).orElse(null);
+    }
+
+    public Material getMaterial(String id) {
+        return materialRepository.findById(id).orElse(null);
+    }
+
+    public void deleteMaterial(String id) {
+        Material material = materialRepository.findById(id)
+        .orElseThrow(() -> new RuntimeException("Material not found"));
+
+        for (CatalogItem catalog : material.getCatalogs()) {
+            catalog.getMaterials().remove(material);
+        }
+        material.getCatalogs().clear();
+
+        materialRepository.delete(material);
+    }
 
 }

@@ -2,8 +2,6 @@ package com.skripsi.produksi_apk.entity;
 
 import java.util.List;
 
-import javax.xml.catalog.Catalog;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -17,6 +15,9 @@ public class Material {
     @Column(name="id")
     private String id;
 
+    @Column(name="name")
+    private String materialName;
+
     @Column(name="stock_qty")
     private int stockQty;
 
@@ -24,7 +25,7 @@ public class Material {
     private String unit;
 
     @ManyToMany(mappedBy = "materials")
-    private List<Catalog> catalogs;
+    private List<CatalogItem> catalogs;
 
     public String getId() {
         return id;
@@ -50,11 +51,20 @@ public class Material {
         this.unit = unit;
     }
 
-    public List<Catalog> getCatalogs() {
+    public List<CatalogItem> getCatalogs() {
         return catalogs;
     }
 
-    public void setCatalogs(List<Catalog> catalogs) {
+    public void setCatalogs(List<CatalogItem> catalogs) {
         this.catalogs = catalogs;
     }
+
+    public void setMaterialName(String materialName) {
+        this.materialName = materialName;
+    }
+
+    public String getMaterialName() {
+        return materialName;
+    }
+
 }

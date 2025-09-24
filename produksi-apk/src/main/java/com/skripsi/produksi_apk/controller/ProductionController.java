@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.skripsi.produksi_apk.entity.Material;
 import com.skripsi.produksi_apk.entity.Role;
 import com.skripsi.produksi_apk.entity.User;
 import com.skripsi.produksi_apk.model.LoginRequest;
@@ -23,10 +24,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 @RestController
 @RequestMapping("/api")
 public class ProductionController {
-    // @GetMapping("/test")
-    // public String getMethodName(@RequestParam String param) {
-    //     return new String("Test " + param);
-    // }
 
     private final ProductionService productionService;
 
@@ -53,12 +50,12 @@ public class ProductionController {
     }
     
 
-    @GetMapping("/user/{id}")
+    @GetMapping("/getuser/{id}")
     public User getUser(@PathVariable String id) {
         return productionService.getUser(id);
     }
 
-    @PutMapping("/user/{id}")
+    @PutMapping("/updateuser/{id}")
     public User updateUser(
             @PathVariable String id,
             @RequestBody User updatedUser) {
@@ -70,4 +67,26 @@ public class ProductionController {
         return productionService.getAllRoles();
     }
 
+    // material
+    @PostMapping("/material")
+    public Material insertMaterial(@RequestParam String materialName, @RequestParam int stock_qty, @RequestParam String unit) {
+        return productionService.insertMaterial(materialName, stock_qty, unit);
+    }
+
+    @PostMapping("/update-material/{id}")
+    public Material updateMaterial(@PathVariable String id, @RequestBody Material material) {
+        return productionService.updateMaterial(id, material);
+    }
+
+    @GetMapping("/get-materials/{id}")
+    public Material getMaterial(@PathVariable String id) {
+        return productionService.getMaterial(id);
+    }
+
+    @PostMapping("/delete-material/{id}")
+    public String deleteMaterial(@PathVariable String id) {
+        productionService.deleteMaterial(id);
+        return "Success Delete Material";
+
+    }
 }
