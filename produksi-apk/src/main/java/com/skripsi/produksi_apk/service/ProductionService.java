@@ -4,7 +4,6 @@ import com.skripsi.produksi_apk.entity.CatalogItem;
 import com.skripsi.produksi_apk.entity.Material;
 import com.skripsi.produksi_apk.entity.Role;
 import com.skripsi.produksi_apk.entity.User;
-import com.skripsi.produksi_apk.model.LoginRequest;
 import com.skripsi.produksi_apk.repository.CatalogItemRepository;
 import com.skripsi.produksi_apk.repository.MaterialRepository;
 import com.skripsi.produksi_apk.repository.RoleRepository;
@@ -16,13 +15,9 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 @Service
 public class ProductionService {
 
@@ -51,6 +46,11 @@ public class ProductionService {
     private String generateMaterialId() {
         Long nextVal = jdbcTemplate.queryForObject("SELECT nextval('material_seq')", Long.class);
         return "MAT" + String.format("%03d", nextVal);
+    }
+
+    private String generateCatalogId() {
+        Long nextVal = jdbcTemplate.queryForObject("SELECT nextval('catalog_seq')", Long.class);
+        return "CAT" + String.format("%03d", nextVal);
     }
 
     public User registerUser(String username, String password, String roleId) {
@@ -84,8 +84,6 @@ public class ProductionService {
         return null;
     }
 
-
-
     public User getUser(String id) {
         return userRepository.findById(id).orElse(null);
     }
@@ -107,11 +105,7 @@ public class ProductionService {
         return roleRepository.findByIsOwnerNot(1);
     }
 
-    public List<Material> getAllMaterials() {
-        return materialRepository.findAll();
-    }
-
-    // material
+    // ============ MATERIAL ================
     public Material insertMaterial(Material material) {
         material.setId(generateMaterialId());
         material.setStockQty(material.getStockQty());
@@ -133,16 +127,50 @@ public class ProductionService {
         return materialRepository.findById(id).orElse(null);
     }
 
+    public List<Material> getAllMaterials() {
+        return materialRepository.findAll();
+    }
+
     public void deleteMaterial(String id) {
         Material material = materialRepository.findById(id)
         .orElseThrow(() -> new RuntimeException("Material not found"));
-
-        for (CatalogItem catalog : material.getCatalogs()) {
-            catalog.getMaterials().remove(material);
-        }
         material.getCatalogs().clear();
 
         materialRepository.delete(material);
     }
 
+    // =========== CATALOG ITEM ===============
+    public CatalogItem insertCatalogItem(CatalogItem catalogItem) {
+        catalogItem.setId(generateCatalogId());
+        catalogItem.setCreatedBy(catalogItem.getCreatedBy());
+        catalogItem.setDescription(catalogItem.getDescription());
+        catalogItem.setPrice(catalogItem.getPrice());
+        catalogItem.setTitle(catalogItem.getTitle());
+        catalogItem.setAttachment(catalogItem.getAttachment());
+        catalogItem.setMaterials(catalogItem.getMaterials());
+        return catalogItemRepository.save(catalogItem);
+    }
+
+    public CatalogItem updateCatalogItem(String id, CatalogItem updatedCatalogItem) {
+        return catalogItemRepository.findById(id).map(catalog -> {
+            catalog.setCreatedBy(updatedCatalogItem.getCreatedBy());
+            catalog.setDescription(updatedCatalogItem.getDescription());
+            catalog.setMaterials(updatedCatalogItem.getMaterials());
+            catalog.setPrice(updatedCatalogItem.getPrice());
+            catalog.setTitle(updatedCatalogItem.getTitle());
+            catalog.setAttachment(updatedCatalogItem.getAttachment());
+            return catalogItemRepository.save(catalog);
+        }).orElse(null);
+    }
+
+    public List<CatalogItem> getAllCatalogItem() {
+        return catalogItemRepository.findAll();
+    }
+
+    public void deleteCatalogItem(String id) {
+        CatalogItem catalogItem = catalogItemRepository.findById(id)
+        .orElseThrow(() -> new RuntimeException("Catalog Item not found"));
+
+        catalogItemRepository.delete(catalogItem);
+    }
 }

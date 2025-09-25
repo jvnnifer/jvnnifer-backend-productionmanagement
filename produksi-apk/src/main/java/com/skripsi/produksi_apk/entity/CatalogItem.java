@@ -1,14 +1,14 @@
 package com.skripsi.produksi_apk.entity;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
 import jakarta.persistence.Lob;
-import jakarta.persistence.ManyToMany;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 @Entity
@@ -33,13 +33,8 @@ public class CatalogItem {
     @Lob
     private byte[] attachment;
 
-    @ManyToMany
-    @JoinTable(
-        name = "material_catalog", 
-        joinColumns = @JoinColumn(name = "catalog_id"), 
-        inverseJoinColumns = @JoinColumn(name = "material_id")
-    )
-    private List<Material> materials;
+    @OneToMany(mappedBy = "catalog", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<MaterialCatalog> materialCatalogs = new ArrayList<>();
 
     public String getId() {
         return id;
@@ -89,12 +84,12 @@ public class CatalogItem {
         this.attachment = attachment;
     }
 
-    public List<Material> getMaterials() {
-        return materials;
+    public List<MaterialCatalog> getMaterials() {
+        return materialCatalogs;
     }
 
-    public void setMaterials(List<Material> materials) {
-        this.materials = materials;
+    public void setMaterials(List<MaterialCatalog> materialCatalogs) {
+        this.materialCatalogs = materialCatalogs;
     }
 
     

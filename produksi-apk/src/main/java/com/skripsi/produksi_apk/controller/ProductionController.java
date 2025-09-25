@@ -1,9 +1,7 @@
 package com.skripsi.produksi_apk.controller;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,10 +13,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.skripsi.produksi_apk.entity.CatalogItem;
 import com.skripsi.produksi_apk.entity.Material;
 import com.skripsi.produksi_apk.entity.Role;
 import com.skripsi.produksi_apk.entity.User;
-import com.skripsi.produksi_apk.model.LoginRequest;
 import com.skripsi.produksi_apk.service.ProductionService;
 
 import org.springframework.web.bind.annotation.RequestParam;
@@ -70,7 +68,7 @@ public class ProductionController {
         return productionService.getAllRoles();
     }
 
-    // material
+    // ============= MATERIAL ==================
     @PostMapping("/material")
     public Material insertMaterial(@RequestBody Material material) {
         return productionService.insertMaterial(material);
@@ -90,6 +88,29 @@ public class ProductionController {
     public String deleteMaterial(@PathVariable String id) {
         productionService.deleteMaterial(id);
         return "Success Delete Material";
+
+    }
+
+    // ============== CATALOG ITEM ===============
+    @PostMapping("/catalog")
+    public CatalogItem insertCatalogItem(@RequestBody CatalogItem catalogItem) {
+        return productionService.insertCatalogItem(catalogItem);
+    }
+
+    @PostMapping("/update-catalog/{id}")
+    public CatalogItem updateCatalogItem(@PathVariable String id, @RequestBody CatalogItem catalogItem) {
+        return productionService.updateCatalogItem(id, catalogItem);
+    }
+
+    @GetMapping("/get-catalog")
+    public List<CatalogItem> getCatalogItems() {
+        return productionService.getAllCatalogItem();
+    }
+
+    @PostMapping("/delete-catalog/{id}")
+    public String deleteCatalog(@PathVariable String id) {
+        productionService.deleteCatalogItem(id);
+        return "Success Delete Catalog";
 
     }
 }

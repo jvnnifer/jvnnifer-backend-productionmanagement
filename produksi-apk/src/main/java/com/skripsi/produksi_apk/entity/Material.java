@@ -1,11 +1,13 @@
 package com.skripsi.produksi_apk.entity;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
-import jakarta.persistence.ManyToMany;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 @Entity
@@ -24,8 +26,8 @@ public class Material {
     @Column(name="unit")
     private String unit;
 
-    @ManyToMany(mappedBy = "materials")
-    private List<CatalogItem> catalogs;
+    @OneToMany(mappedBy = "material", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<MaterialCatalog> materialCatalogs = new ArrayList<>();
 
     public String getId() {
         return id;
@@ -51,12 +53,12 @@ public class Material {
         this.unit = unit;
     }
 
-    public List<CatalogItem> getCatalogs() {
-        return catalogs;
+    public List<MaterialCatalog> getCatalogs() {
+        return materialCatalogs;
     }
 
-    public void setCatalogs(List<CatalogItem> catalogs) {
-        this.catalogs = catalogs;
+    public void setCatalogs(List<MaterialCatalog> materialCatalogs) {
+        this.materialCatalogs = materialCatalogs;
     }
 
     public void setMaterialName(String materialName) {
