@@ -88,18 +88,25 @@ public class ProductionService {
         return userRepository.findById(id).orElse(null);
     }
 
-    public User updateUser(String id, User updatedUser) {
-        Optional<User> optionalUser = userRepository.findById(id);
-        if(optionalUser.isPresent()) {
-            User user = optionalUser.get();
-            user.setUsername(updatedUser.getUsername());
-            user.setPassword(updatedUser.getPassword());
-            user.setRole(updatedUser.getRole());
-            return userRepository.save(user);
-        } else {
-            throw new RuntimeException("User not found");
+    public User updateUser(String id, String username, String password, String roleId) {
+        User user = userRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+        user.setUsername(username);
+
+        if (password != null && !password.isEmpty()) {
+            user.setPassword(passwordEncoder.encode(password));
         }
+
+        if (roleId != null) {
+            Role role = roleRepository.findById(roleId)
+                        .orElseThrow(() -> new RuntimeException("Role not found"));
+            user.setRole(role);
+        }
+
+        return userRepository.save(user);
     }
+
 
     public List<Role> getAllRoles() {
         return roleRepository.findByIsOwnerNot(1);

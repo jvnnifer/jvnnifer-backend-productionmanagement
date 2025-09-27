@@ -59,8 +59,8 @@ public class ProductionController {
     @PutMapping("/updateuser/{id}")
     public User updateUser(
             @PathVariable String id,
-            @RequestBody User updatedUser) {
-        return productionService.updateUser(id, updatedUser);
+            @RequestParam String username, @RequestParam String password, @RequestParam String roleId) {
+        return productionService.updateUser(id, username, password, roleId);
     }
 
     @GetMapping("/roles")
