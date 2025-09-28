@@ -2,12 +2,10 @@ package com.skripsi.produksi_apk.service;
 
 import com.skripsi.produksi_apk.entity.CatalogItem;
 import com.skripsi.produksi_apk.entity.Material;
+import com.skripsi.produksi_apk.entity.MaterialLog;
 import com.skripsi.produksi_apk.entity.Role;
 import com.skripsi.produksi_apk.entity.User;
-import com.skripsi.produksi_apk.repository.CatalogItemRepository;
-import com.skripsi.produksi_apk.repository.MaterialRepository;
-import com.skripsi.produksi_apk.repository.RoleRepository;
-import com.skripsi.produksi_apk.repository.UserRepository;
+import com.skripsi.produksi_apk.repository.*;
 
 import java.util.HashMap;
 import java.util.List;
@@ -18,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+
 @Service
 public class ProductionService {
 
@@ -27,15 +26,19 @@ public class ProductionService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final MaterialRepository materialRepository;
+    private final MaterialLogRepository materialLogRepository;
     private final CatalogItemRepository catalogItemRepository;
 
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
-    public ProductionService(UserRepository userRepository, RoleRepository roleRepository, MaterialRepository materialRepository, CatalogItemRepository catalogItemRepository) {
+    public ProductionService(UserRepository userRepository, RoleRepository roleRepository, 
+    MaterialRepository materialRepository, CatalogItemRepository catalogItemRepository, 
+    MaterialLogRepository materialLogRepository) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.materialRepository = materialRepository;
         this.catalogItemRepository = catalogItemRepository;
+        this.materialLogRepository = materialLogRepository;
     }
 
     private String generateUserId() {
@@ -180,4 +183,39 @@ public class ProductionService {
 
         catalogItemRepository.delete(catalogItem);
     }
+
+    // ================ MATERIAL LOG ===============
+    public MaterialLog insertMaterialLog(MaterialLog materialLog) {
+        materialLog.setCreatedBy(materialLog.getCreatedBy());
+        materialLog.setNote(materialLog.getNote());
+        materialLog.setQty(materialLog.getQty());
+
+        return materialLogRepository.save(materialLog);
+    }
+
+    public MaterialLog updateMaterialLog(Long id, MaterialLog updatedMaterialLog) {
+        return materialLogRepository.findById(id).map(materialLog -> {
+            materialLog.setId(id);
+            materialLog.setCreatedBy(updatedMaterialLog.getCreatedBy());
+            materialLog.setNote(updatedMaterialLog.getNote());
+            materialLog.setMaterial(updatedMaterialLog.getMaterial());
+            return materialLogRepository.save(materialLog);
+        }).orElse(null);
+    }
+
+    public MaterialLog getMaterialLog(Long id) {
+        return materialLogRepository.findById(id).orElse(null);
+    }
+
+    public List<MaterialLog> getAllMaterialLogs() {
+        return materialLogRepository.findAll();
+    }
+
+    public void deleteMaterialLog(Long id) {
+        MaterialLog materialLog = materialLogRepository.findById(id)
+        .orElseThrow(() -> new RuntimeException("Material Log not found"));
+
+        materialLogRepository.delete(materialLog);
+    }
+    
 }
