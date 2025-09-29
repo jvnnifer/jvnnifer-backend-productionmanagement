@@ -1,9 +1,11 @@
 package com.skripsi.produksi_apk.controller;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -12,14 +14,17 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.skripsi.produksi_apk.entity.CatalogItem;
 import com.skripsi.produksi_apk.entity.Material;
+import com.skripsi.produksi_apk.entity.MaterialLog;
 import com.skripsi.produksi_apk.entity.Role;
 import com.skripsi.produksi_apk.entity.User;
 import com.skripsi.produksi_apk.service.ProductionService;
 
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 
 
 @RestController
@@ -92,9 +97,16 @@ public class ProductionController {
     }
 
     // ============== CATALOG ITEM ===============
-    @PostMapping("/catalog")
-    public CatalogItem insertCatalogItem(@RequestBody CatalogItem catalogItem) {
-        return productionService.insertCatalogItem(catalogItem);
+    @PostMapping(value = "/catalog", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public CatalogItem insertCatalogItem(
+            @RequestPart("title") String title,
+            @RequestPart("createdBy") String createdBy,
+            @RequestPart("description") String description,
+            @RequestPart("price") Double price,
+            @RequestPart("materials") String materialsJson,  
+            @RequestPart(value = "file", required = false) MultipartFile file
+    ) throws IOException {
+        return productionService.insertCatalogItem(title, createdBy, description, price, materialsJson, file);
     }
 
     @PostMapping("/update-catalog/{id}")
@@ -112,5 +124,27 @@ public class ProductionController {
         productionService.deleteCatalogItem(id);
         return "Success Delete Catalog";
 
+    }
+
+    // =============== MATERIAL LOG ====================
+     @PostMapping("/material-log")
+    public MaterialLog insertMaterialLog(@RequestBody MaterialLog materialLog) {
+        return productionService.insertMaterialLog(materialLog);
+    }
+
+    @PostMapping("/update-material-log/{id}")
+    public MaterialLog updateMaterialLog(@PathVariable Long id, @RequestBody MaterialLog materialLog) {
+        return productionService.updateMaterialLog(id, materialLog);
+    }
+
+    @GetMapping("/get-material-log")
+    public List<MaterialLog> getMaterialLogs() {
+        return productionService.getAllMaterialLogs();
+    }
+
+    @PostMapping("/delete-material-log/{id}")
+    public String deleteMaterialLog(@PathVariable Long id) {
+        productionService.deleteMaterialLog(id);
+        return "Success Delete Material Log";
     }
 }

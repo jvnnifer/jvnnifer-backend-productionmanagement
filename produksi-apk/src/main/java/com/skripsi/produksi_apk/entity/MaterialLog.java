@@ -1,11 +1,14 @@
 package com.skripsi.produksi_apk.entity;
 
+import java.util.Date;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 
@@ -25,7 +28,11 @@ public class MaterialLog {
     @Column(name="qty")
     private Integer qty;
 
-    @OneToOne(mappedBy = "material", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Column(name="created_date")
+    private Date createdDate;
+
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "material_id")
     private Material material;
 
     public Long getId() {
@@ -68,6 +75,12 @@ public class MaterialLog {
         this.material = material;
     }
 
-    
+    public Date getCreatedDate() {
+        return createdDate;
+    }
+
+    public void setCreatedDate(Date createdDate) {
+        this.createdDate = createdDate;
+    }
 
 }

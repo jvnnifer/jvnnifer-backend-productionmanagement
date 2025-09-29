@@ -3,6 +3,7 @@ package com.skripsi.produksi_apk.entity;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -27,6 +28,7 @@ public class Material {
     private String unit;
 
     @OneToMany(mappedBy = "material", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
     private List<MaterialCatalog> materialCatalogs = new ArrayList<>();
 
     public String getId() {

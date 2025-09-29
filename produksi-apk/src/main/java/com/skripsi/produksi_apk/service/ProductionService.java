@@ -1,12 +1,18 @@
 package com.skripsi.produksi_apk.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.skripsi.produksi_apk.entity.CatalogItem;
 import com.skripsi.produksi_apk.entity.Material;
+import com.skripsi.produksi_apk.entity.MaterialCatalog;
 import com.skripsi.produksi_apk.entity.MaterialLog;
 import com.skripsi.produksi_apk.entity.Role;
 import com.skripsi.produksi_apk.entity.User;
+import com.skripsi.produksi_apk.model.MaterialCatalogDTO;
 import com.skripsi.produksi_apk.repository.*;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 public class ProductionService {
@@ -150,22 +157,56 @@ public class ProductionService {
     }
 
     // =========== CATALOG ITEM ===============
-    public CatalogItem insertCatalogItem(CatalogItem catalogItem) {
-        catalogItem.setId(generateCatalogId());
-        catalogItem.setCreatedBy(catalogItem.getCreatedBy());
-        catalogItem.setDescription(catalogItem.getDescription());
-        catalogItem.setPrice(catalogItem.getPrice());
-        catalogItem.setTitle(catalogItem.getTitle());
-        catalogItem.setAttachment(catalogItem.getAttachment());
-        catalogItem.setMaterials(catalogItem.getMaterials());
-        return catalogItemRepository.save(catalogItem);
+    public CatalogItem insertCatalogItem(
+        String title,
+        String createdBy,
+        String description,
+        Double price,
+        String materialsJson,
+        MultipartFile file
+) throws IOException {
+
+    CatalogItem catalogItem = new CatalogItem();
+    catalogItem.setId(generateCatalogId());
+    catalogItem.setTitle(title);
+    catalogItem.setCreatedBy(createdBy);
+    catalogItem.setDescription(description);
+    catalogItem.setPrice(price);
+
+    if (file != null && !file.isEmpty()) {
+        catalogItem.setAttachment(file.getBytes());
     }
+
+    ObjectMapper mapper = new ObjectMapper();
+    List<MaterialCatalogDTO> materialsDto = Arrays.asList(
+        mapper.readValue(materialsJson, MaterialCatalogDTO[].class)
+    );
+
+    List<MaterialCatalog> materialEntities = new ArrayList<>();
+    for (MaterialCatalogDTO dto : materialsDto) {
+        MaterialCatalog mc = new MaterialCatalog();
+        mc.setCatalog(catalogItem);
+
+        Material material = materialRepository.findById(dto.getMaterialId())
+            .orElseThrow(() -> new RuntimeException("Material not found: " + dto.getMaterialId()));
+
+        mc.setMaterial(material);
+        mc.setReqQty(dto.getReqQty());
+
+        materialEntities.add(mc);
+    }
+    catalogItem.setMaterialCatalogs(materialEntities);
+
+
+    return catalogItemRepository.save(catalogItem);
+}
+
 
     public CatalogItem updateCatalogItem(String id, CatalogItem updatedCatalogItem) {
         return catalogItemRepository.findById(id).map(catalog -> {
             catalog.setCreatedBy(updatedCatalogItem.getCreatedBy());
             catalog.setDescription(updatedCatalogItem.getDescription());
-            catalog.setMaterials(updatedCatalogItem.getMaterials());
+            catalog.setMaterialCatalogs(updatedCatalogItem.getMaterialCatalogs());
             catalog.setPrice(updatedCatalogItem.getPrice());
             catalog.setTitle(updatedCatalogItem.getTitle());
             catalog.setAttachment(updatedCatalogItem.getAttachment());
@@ -189,6 +230,7 @@ public class ProductionService {
         materialLog.setCreatedBy(materialLog.getCreatedBy());
         materialLog.setNote(materialLog.getNote());
         materialLog.setQty(materialLog.getQty());
+        materialLog.setCreatedDate(materialLog.getCreatedDate());
 
         return materialLogRepository.save(materialLog);
     }
@@ -196,7 +238,6 @@ public class ProductionService {
     public MaterialLog updateMaterialLog(Long id, MaterialLog updatedMaterialLog) {
         return materialLogRepository.findById(id).map(materialLog -> {
             materialLog.setId(id);
-            materialLog.setCreatedBy(updatedMaterialLog.getCreatedBy());
             materialLog.setNote(updatedMaterialLog.getNote());
             materialLog.setMaterial(updatedMaterialLog.getMaterial());
             return materialLogRepository.save(materialLog);

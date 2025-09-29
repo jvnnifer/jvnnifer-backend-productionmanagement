@@ -3,6 +3,9 @@ package com.skripsi.produksi_apk.entity;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.hibernate.annotations.JdbcType;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -31,9 +34,12 @@ public class CatalogItem {
     private Double price;
 
     @Lob
+    @Column(name = "attachment", nullable = true)
+    @JdbcType(org.hibernate.type.descriptor.jdbc.BinaryJdbcType.class)
     private byte[] attachment;
 
     @OneToMany(mappedBy = "catalog", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore 
     private List<MaterialCatalog> materialCatalogs = new ArrayList<>();
 
     public String getId() {
@@ -84,11 +90,11 @@ public class CatalogItem {
         this.attachment = attachment;
     }
 
-    public List<MaterialCatalog> getMaterials() {
+    public List<MaterialCatalog> getMaterialCatalogs() {
         return materialCatalogs;
     }
 
-    public void setMaterials(List<MaterialCatalog> materialCatalogs) {
+    public void setMaterialCatalogs(List<MaterialCatalog> materialCatalogs) {
         this.materialCatalogs = materialCatalogs;
     }
 
