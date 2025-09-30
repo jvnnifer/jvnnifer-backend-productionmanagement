@@ -196,8 +196,6 @@ public class ProductionService {
         materialEntities.add(mc);
     }
     catalogItem.setMaterialCatalogs(materialEntities);
-
-
     return catalogItemRepository.save(catalogItem);
 }
 
@@ -227,9 +225,15 @@ public class ProductionService {
 
     // ================ MATERIAL LOG ===============
     public MaterialLog insertMaterialLog(MaterialLog materialLog) {
+        if (materialLog.getMaterial() != null && materialLog.getMaterial().getId() != null) {
+            Material existingMaterial = materialRepository.findById(materialLog.getMaterial().getId())
+                    .orElseThrow(() -> new RuntimeException("Material not found"));
+            materialLog.setMaterial(existingMaterial);
+        }
         materialLog.setCreatedBy(materialLog.getCreatedBy());
         materialLog.setNote(materialLog.getNote());
         materialLog.setQty(materialLog.getQty());
+        materialLog.setType(materialLog.getType());
         materialLog.setCreatedDate(materialLog.getCreatedDate());
 
         return materialLogRepository.save(materialLog);
@@ -240,6 +244,7 @@ public class ProductionService {
             materialLog.setId(id);
             materialLog.setNote(updatedMaterialLog.getNote());
             materialLog.setMaterial(updatedMaterialLog.getMaterial());
+            materialLog.setType(updatedMaterialLog.getType());
             return materialLogRepository.save(materialLog);
         }).orElse(null);
     }

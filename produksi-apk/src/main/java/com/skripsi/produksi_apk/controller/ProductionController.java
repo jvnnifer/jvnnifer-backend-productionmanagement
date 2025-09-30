@@ -127,7 +127,7 @@ public class ProductionController {
     }
 
     // =============== MATERIAL LOG ====================
-     @PostMapping("/material-log")
+    @PostMapping("/material-log")
     public MaterialLog insertMaterialLog(@RequestBody MaterialLog materialLog) {
         return productionService.insertMaterialLog(materialLog);
     }
