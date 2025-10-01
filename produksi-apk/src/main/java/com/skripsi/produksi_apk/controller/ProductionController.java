@@ -99,11 +99,11 @@ public class ProductionController {
     // ============== CATALOG ITEM ===============
     @PostMapping(value = "/catalog", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public CatalogItem insertCatalogItem(
-            @RequestPart("title") String title,
-            @RequestPart("createdBy") String createdBy,
-            @RequestPart("description") String description,
-            @RequestPart("price") Double price,
-            @RequestPart("materials") String materialsJson,  
+            @RequestParam("title") String title,
+            @RequestParam("createdBy") String createdBy,
+            @RequestParam("description") String description,
+            @RequestParam("price") Double price,
+            @RequestParam("materials") String materialsJson,
             @RequestPart(value = "file", required = false) MultipartFile file
     ) throws IOException {
         return productionService.insertCatalogItem(title, createdBy, description, price, materialsJson, file);
