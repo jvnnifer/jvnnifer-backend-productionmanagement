@@ -15,7 +15,6 @@ public class MaterialCatalogDTO {
     public void setReqQty(Integer reqQty) {
         this.reqQty = reqQty;
     }
-
     
 }
 

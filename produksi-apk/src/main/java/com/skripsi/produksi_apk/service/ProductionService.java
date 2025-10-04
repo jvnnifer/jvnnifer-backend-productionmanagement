@@ -5,12 +5,16 @@ import com.skripsi.produksi_apk.entity.CatalogItem;
 import com.skripsi.produksi_apk.entity.Material;
 import com.skripsi.produksi_apk.entity.MaterialCatalog;
 import com.skripsi.produksi_apk.entity.MaterialLog;
+import com.skripsi.produksi_apk.entity.Order;
+import com.skripsi.produksi_apk.entity.OrderCatalog;
 import com.skripsi.produksi_apk.entity.Role;
 import com.skripsi.produksi_apk.entity.User;
 import com.skripsi.produksi_apk.model.MaterialCatalogDTO;
+import com.skripsi.produksi_apk.model.OrderCatalogDTO;
 import com.skripsi.produksi_apk.repository.*;
 
 import java.io.IOException;
+import java.sql.Date;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -35,17 +39,19 @@ public class ProductionService {
     private final MaterialRepository materialRepository;
     private final MaterialLogRepository materialLogRepository;
     private final CatalogItemRepository catalogItemRepository;
+    private final OrderRepository orderRepository;
 
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     public ProductionService(UserRepository userRepository, RoleRepository roleRepository, 
     MaterialRepository materialRepository, CatalogItemRepository catalogItemRepository, 
-    MaterialLogRepository materialLogRepository) {
+    MaterialLogRepository materialLogRepository, OrderRepository orderRepository) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.materialRepository = materialRepository;
         this.catalogItemRepository = catalogItemRepository;
         this.materialLogRepository = materialLogRepository;
+        this.orderRepository = orderRepository;
     }
 
     private String generateUserId() {
@@ -61,6 +67,11 @@ public class ProductionService {
     private String generateCatalogId() {
         Long nextVal = jdbcTemplate.queryForObject("SELECT nextval('catalog_seq')", Long.class);
         return "CAT" + String.format("%03d", nextVal);
+    }
+
+    private String generateOrderId() {
+        Long nextVal = jdbcTemplate.queryForObject("SELECT nextval('order_seq')", Long.class);
+        return "ODR" + String.format("%03d", nextVal);
     }
 
     public User registerUser(String username, String password, String roleId) {
@@ -226,9 +237,9 @@ public class ProductionService {
     // ================ MATERIAL LOG ===============
     public MaterialLog insertMaterialLog(MaterialLog materialLog) {
         if (materialLog.getMaterial() != null && materialLog.getMaterial().getId() != null) {
-            Material existingMaterial = materialRepository.findById(materialLog.getMaterial().getId())
+            Material orderCatalog = materialRepository.findById(materialLog.getMaterial().getId())
                     .orElseThrow(() -> new RuntimeException("Material not found"));
-            materialLog.setMaterial(existingMaterial);
+            materialLog.setMaterial(orderCatalog);
         }
         materialLog.setCreatedBy(materialLog.getCreatedBy());
         materialLog.setNote(materialLog.getNote());
@@ -263,5 +274,48 @@ public class ProductionService {
 
         materialLogRepository.delete(materialLog);
     }
+
+    // ====================== ORDER ============================
+    public Order insertOrder(
+        String deptStore,
+        Date deadline,
+        String status,
+        String orderCatalogsJson,
+        MultipartFile file
+) throws IOException {
+
+    Order order = new Order();
+    order.setId(generateOrderId());  
+    order.setDeptStore(deptStore);
+    order.setDeadline(deadline);
+    order.setStatus(status);
+
+    if (file != null && !file.isEmpty()) {
+        order.setAttachment(file.getBytes());
+    }
+
+    ObjectMapper mapper = new ObjectMapper();
+    List<OrderCatalogDTO> catalogsDto = Arrays.asList(
+        mapper.readValue(orderCatalogsJson, OrderCatalogDTO[].class)
+    );
+
+    List<OrderCatalog> orderCatalogEntities = new ArrayList<>();
+    for (OrderCatalogDTO dto : catalogsDto) {
+        OrderCatalog oc = new OrderCatalog();
+        oc.setOrder(order);
+
+        CatalogItem catalogItem = catalogItemRepository.findById(dto.getCatalogId())
+            .orElseThrow(() -> new RuntimeException("Catalog not found: " + dto.getCatalogId()));
+
+        oc.setCatalogItem(catalogItem);
+
+        orderCatalogEntities.add(oc);
+    }
+
+    order.setOrderCatalogs(orderCatalogEntities);
+
+    return orderRepository.save(order);
+}
+
     
 }

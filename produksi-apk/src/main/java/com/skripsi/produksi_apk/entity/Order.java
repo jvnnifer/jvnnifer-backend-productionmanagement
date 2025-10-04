@@ -29,7 +29,7 @@ public class Order {
     @Column(name="deadline")
     private Date deadline;
 
-    @OneToMany(mappedBy = "catalog", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private List<OrderCatalog> orderCatalogs = new ArrayList<>();
 
