@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.hibernate.annotations.JdbcType;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.CascadeType;
@@ -17,8 +18,8 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name="order")
-public class Order {
+@Table(name="orders")
+public class Orders {
     @Id
     @Column(name="order_no")
     private String orderNo;
@@ -26,6 +27,7 @@ public class Order {
     @Column(name="dept_store")
     private String deptStore;
 
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     @Column(name="deadline")
     private Date deadline;
 

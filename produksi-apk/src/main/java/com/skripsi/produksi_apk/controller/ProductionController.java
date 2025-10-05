@@ -1,11 +1,13 @@
 package com.skripsi.produksi_apk.controller;
 
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -21,7 +23,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.skripsi.produksi_apk.entity.CatalogItem;
 import com.skripsi.produksi_apk.entity.Material;
 import com.skripsi.produksi_apk.entity.MaterialLog;
-import com.skripsi.produksi_apk.entity.Order;
+import com.skripsi.produksi_apk.entity.Orders;
 import com.skripsi.produksi_apk.entity.Role;
 import com.skripsi.produksi_apk.entity.User;
 import com.skripsi.produksi_apk.service.ProductionService;
@@ -153,10 +155,10 @@ public class ProductionController {
 
     // ================== ORDER ===========================
     @PostMapping("/order")
-    public Order insertOrder(
+    public Orders insertOrder(
             @RequestParam("orderNo") String orderNo,
             @RequestParam("deptStore") String deptStore,
-            @RequestParam("deadline") Date deadline,
+            @RequestParam("deadline")  @DateTimeFormat(pattern = "yyyy-MM-dd") Date deadline,
             @RequestParam("status") String status,
             @RequestParam("orderCatalog") String orderCatalog,
             @RequestParam("notes") String notes,
@@ -166,12 +168,12 @@ public class ProductionController {
     }
     
     @GetMapping("/get-order")
-    public List<Order> getOrders() {
+    public List<Orders> getOrders() {
         return productionService.getAllOrders();
     }
 
-    @GetMapping("/get-order/{orderNo}")
-    public Optional<Order> getOrderById(@PathVariable String orderNo, @RequestBody Order order) {
+    @GetMapping("/get-order-by-id")
+    public Optional<Orders> getOrderById(@RequestParam String orderNo) {
         return productionService.getOrderById(orderNo);
     }
 }

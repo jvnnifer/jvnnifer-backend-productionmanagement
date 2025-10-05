@@ -21,7 +21,7 @@ public class OrderCatalog {
     @ManyToOne
     @JoinColumn(name = "order_id", nullable = false)
     @JsonIgnore
-    private Order order;
+    private Orders order;
 
     @ManyToOne
     @JoinColumn(name = "catalog_id", nullable = false)
@@ -47,11 +47,11 @@ public class OrderCatalog {
         this.id = id;
     }
 
-    public Order getOrder() {
+    public Orders getOrder() {
         return order;
     }
 
-    public void setOrder(Order order) {
+    public void setOrder(Orders order) {
         this.order = order;
     }
 

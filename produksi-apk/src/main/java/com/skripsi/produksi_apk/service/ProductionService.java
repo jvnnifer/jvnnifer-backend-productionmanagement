@@ -5,7 +5,7 @@ import com.skripsi.produksi_apk.entity.CatalogItem;
 import com.skripsi.produksi_apk.entity.Material;
 import com.skripsi.produksi_apk.entity.MaterialCatalog;
 import com.skripsi.produksi_apk.entity.MaterialLog;
-import com.skripsi.produksi_apk.entity.Order;
+import com.skripsi.produksi_apk.entity.Orders;
 import com.skripsi.produksi_apk.entity.OrderCatalog;
 import com.skripsi.produksi_apk.entity.Role;
 import com.skripsi.produksi_apk.entity.User;
@@ -276,7 +276,7 @@ public class ProductionService {
     }
 
     // ====================== ORDER ============================
-    public Order insertOrder(
+    public Orders insertOrder(
         String orderNo,
         String deptStore,
         Date deadline,
@@ -286,7 +286,7 @@ public class ProductionService {
         MultipartFile file
     ) throws IOException {
 
-        Order order = new Order();
+        Orders order = new Orders();
         order.setOrderNo(orderNo);  
         order.setDeptStore(deptStore);
         order.setDeadline(deadline);
@@ -311,7 +311,7 @@ public class ProductionService {
                 .orElseThrow(() -> new RuntimeException("Catalog not found: " + dto.getCatalogId()));
 
             oc.setCatalogItem(catalogItem);
-            oc.setQty(oc.getQty());
+            oc.setQty(dto.getQty());
 
 
             orderCatalogEntities.add(oc);
@@ -322,11 +322,11 @@ public class ProductionService {
         return orderRepository.save(order);
     }
 
-    public List<Order> getAllOrders() {
+    public List<Orders> getAllOrders() {
         return orderRepository.findAll();
     }
 
-    public Optional<Order> getOrderById(String orderNo) {
+    public Optional<Orders> getOrderById(String orderNo) {
         return orderRepository.findById(orderNo);
     } 
 
