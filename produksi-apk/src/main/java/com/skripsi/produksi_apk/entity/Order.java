@@ -1,6 +1,6 @@
 package com.skripsi.produksi_apk.entity;
 
-import java.sql.Date;
+import java.util.Date;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,8 +20,8 @@ import jakarta.persistence.Table;
 @Table(name="order")
 public class Order {
     @Id
-    @Column(name="id")
-    private String id;
+    @Column(name="order_no")
+    private String orderNo;
 
     @Column(name="dept_store")
     private String deptStore;
@@ -36,19 +36,15 @@ public class Order {
     @Column(name="status")
     private String status;
 
+    @Column(name="notes")
+    private String notes;
+    
     @Lob
     @Column(name = "attachment", nullable = true)
     @JdbcType(org.hibernate.type.descriptor.jdbc.BinaryJdbcType.class)
     private byte[] attachment;
 
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
+    
     public String getDeptStore() {
         return deptStore;
     }
@@ -87,6 +83,22 @@ public class Order {
 
     public void setAttachment(byte[] attachment) {
         this.attachment = attachment;
+    }
+
+    public String getNotes() {
+        return notes;
+    }
+
+    public void setNotes(String notes) {
+        this.notes = notes;
+    }
+
+    public String getOrderNo() {
+        return orderNo;
+    }
+
+    public void setOrderNo(String orderNo) {
+        this.orderNo = orderNo;
     }
 
     

@@ -2,6 +2,7 @@ package com.skripsi.produksi_apk.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -26,6 +27,17 @@ public class OrderCatalog {
     @JoinColumn(name = "catalog_id", nullable = false)
     @JsonIgnore
     private CatalogItem catalogItem;
+
+    @Column(name="qty")
+    private int qty;
+
+    public int getQty() {
+        return qty;
+    }
+
+    public void setQty(int qty) {
+        this.qty = qty;
+    }
 
     public Long getId() {
         return id;

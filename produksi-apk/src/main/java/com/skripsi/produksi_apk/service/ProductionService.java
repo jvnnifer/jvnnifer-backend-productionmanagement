@@ -14,7 +14,7 @@ import com.skripsi.produksi_apk.model.OrderCatalogDTO;
 import com.skripsi.produksi_apk.repository.*;
 
 import java.io.IOException;
-import java.sql.Date;
+import java.util.Date;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -98,7 +98,7 @@ public class ProductionService {
                 Map<String, Object> result = new HashMap<>();
                 result.put("id", user.getId());
                 result.put("username", user.getUsername());
-                result.put("roleId", user.getRole().getId()); // asumsi User punya getRole()
+                result.put("roleId", user.getRole().getId()); 
                 return result;
             }
         }
@@ -277,45 +277,58 @@ public class ProductionService {
 
     // ====================== ORDER ============================
     public Order insertOrder(
+        String orderNo,
         String deptStore,
         Date deadline,
         String status,
+        String notes,
         String orderCatalogsJson,
         MultipartFile file
-) throws IOException {
+    ) throws IOException {
 
-    Order order = new Order();
-    order.setId(generateOrderId());  
-    order.setDeptStore(deptStore);
-    order.setDeadline(deadline);
-    order.setStatus(status);
+        Order order = new Order();
+        order.setOrderNo(orderNo);  
+        order.setDeptStore(deptStore);
+        order.setDeadline(deadline);
+        order.setStatus(status);
+        order.setNotes(notes);
 
-    if (file != null && !file.isEmpty()) {
-        order.setAttachment(file.getBytes());
+        if (file != null && !file.isEmpty()) {
+            order.setAttachment(file.getBytes());
+        }
+
+        ObjectMapper mapper = new ObjectMapper();
+        List<OrderCatalogDTO> catalogsDto = Arrays.asList(
+            mapper.readValue(orderCatalogsJson, OrderCatalogDTO[].class)
+        );
+
+        List<OrderCatalog> orderCatalogEntities = new ArrayList<>();
+        for (OrderCatalogDTO dto : catalogsDto) {
+            OrderCatalog oc = new OrderCatalog();
+            oc.setOrder(order);
+
+            CatalogItem catalogItem = catalogItemRepository.findById(dto.getCatalogId())
+                .orElseThrow(() -> new RuntimeException("Catalog not found: " + dto.getCatalogId()));
+
+            oc.setCatalogItem(catalogItem);
+            oc.setQty(oc.getQty());
+
+
+            orderCatalogEntities.add(oc);
+        }
+
+        order.setOrderCatalogs(orderCatalogEntities);
+
+        return orderRepository.save(order);
     }
 
-    ObjectMapper mapper = new ObjectMapper();
-    List<OrderCatalogDTO> catalogsDto = Arrays.asList(
-        mapper.readValue(orderCatalogsJson, OrderCatalogDTO[].class)
-    );
-
-    List<OrderCatalog> orderCatalogEntities = new ArrayList<>();
-    for (OrderCatalogDTO dto : catalogsDto) {
-        OrderCatalog oc = new OrderCatalog();
-        oc.setOrder(order);
-
-        CatalogItem catalogItem = catalogItemRepository.findById(dto.getCatalogId())
-            .orElseThrow(() -> new RuntimeException("Catalog not found: " + dto.getCatalogId()));
-
-        oc.setCatalogItem(catalogItem);
-
-        orderCatalogEntities.add(oc);
+    public List<Order> getAllOrders() {
+        return orderRepository.findAll();
     }
 
-    order.setOrderCatalogs(orderCatalogEntities);
-
-    return orderRepository.save(order);
-}
+    public Optional<Order> getOrderById(String orderNo) {
+        return orderRepository.findById(orderNo);
+    } 
 
     
 }
