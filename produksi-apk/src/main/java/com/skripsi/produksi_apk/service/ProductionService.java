@@ -6,6 +6,7 @@ import com.skripsi.produksi_apk.entity.Material;
 import com.skripsi.produksi_apk.entity.MaterialCatalog;
 import com.skripsi.produksi_apk.entity.MaterialLog;
 import com.skripsi.produksi_apk.entity.Orders;
+import com.skripsi.produksi_apk.entity.PreparationOrder;
 import com.skripsi.produksi_apk.entity.OrderCatalog;
 import com.skripsi.produksi_apk.entity.Role;
 import com.skripsi.produksi_apk.entity.User;
@@ -41,13 +42,16 @@ public class ProductionService {
     private final MaterialLogRepository materialLogRepository;
     private final CatalogItemRepository catalogItemRepository;
     private final OrderRepository orderRepository;
-    private OrderCatalogRepository orderCatalogRepository;
+    private final OrderCatalogRepository orderCatalogRepository;
+    private final PreparationOrderRepository preparationOrderRepository;
+
 
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     public ProductionService(UserRepository userRepository, RoleRepository roleRepository, 
     MaterialRepository materialRepository, CatalogItemRepository catalogItemRepository, 
-    MaterialLogRepository materialLogRepository, OrderRepository orderRepository, OrderCatalogRepository orderCatalogRepository) {
+    MaterialLogRepository materialLogRepository, OrderRepository orderRepository, OrderCatalogRepository orderCatalogRepository,
+    PreparationOrderRepository preparationOrderRepository) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.materialRepository = materialRepository;
@@ -55,6 +59,7 @@ public class ProductionService {
         this.materialLogRepository = materialLogRepository;
         this.orderRepository = orderRepository;
         this.orderCatalogRepository = orderCatalogRepository;
+        this.preparationOrderRepository = preparationOrderRepository;
     }
 
     private String generateUserId() {
@@ -72,9 +77,9 @@ public class ProductionService {
         return "CAT" + String.format("%03d", nextVal);
     }
 
-    private String generateOrderId() {
+    private String generatePrepOrderId() {
         Long nextVal = jdbcTemplate.queryForObject("SELECT nextval('order_seq')", Long.class);
-        return "ODR" + String.format("%03d", nextVal);
+        return "PODR" + String.format("%03d", nextVal);
     }
 
     public User registerUser(String username, String password, String roleId) {
@@ -355,4 +360,38 @@ public class ProductionService {
         return result;
     }
     
+    // preparation order
+    public PreparationOrder insertPreparationOrder(PreparationOrder preparationOrder) {
+        preparationOrder.setId(generatePrepOrderId());
+        preparationOrder.setNote(preparationOrder.getNote());
+        preparationOrder.setStatus(preparationOrder.getStatus());;
+        preparationOrder.setApprovalPic(preparationOrder.getApprovalPic());
+        preparationOrder.setProductionPic(preparationOrder.getProductionPic());
+        return preparationOrderRepository.save(preparationOrder);
+    }
+
+    public PreparationOrder updatePreparationOrder(String id, PreparationOrder updatedPreparationOrder) {
+        return preparationOrderRepository.findById(id).map(preparationOrder -> {
+            preparationOrder.setApprovalPic(updatedPreparationOrder.getApprovalPic());
+            preparationOrder.setNote(updatedPreparationOrder.getNote());
+            preparationOrder.setProductionPic(updatedPreparationOrder.getProductionPic());
+            preparationOrder.setStatus(updatedPreparationOrder.getStatus());
+            return preparationOrderRepository.save(preparationOrder);
+        }).orElse(null);
+    }
+
+    public PreparationOrder getPreparationOrder(String id) {
+        return preparationOrderRepository.findById(id).orElse(null);
+    }
+
+    public List<PreparationOrder> getAllPreparationOrders() {
+        return preparationOrderRepository.findAll();
+    }
+
+    public void deletePreparationOrder(String id) {
+        PreparationOrder preparationOrder = preparationOrderRepository.findById(id)
+        .orElseThrow(() -> new RuntimeException("Preparation Order not found"));
+        preparationOrderRepository.delete(preparationOrder);
+    }
+
 }

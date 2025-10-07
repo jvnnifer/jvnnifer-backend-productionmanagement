@@ -1,11 +1,9 @@
 package com.skripsi.produksi_apk.controller;
 
 import java.io.IOException;
-import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -24,6 +22,7 @@ import com.skripsi.produksi_apk.entity.CatalogItem;
 import com.skripsi.produksi_apk.entity.Material;
 import com.skripsi.produksi_apk.entity.MaterialLog;
 import com.skripsi.produksi_apk.entity.Orders;
+import com.skripsi.produksi_apk.entity.PreparationOrder;
 import com.skripsi.produksi_apk.entity.Role;
 import com.skripsi.produksi_apk.entity.User;
 import com.skripsi.produksi_apk.service.ProductionService;
@@ -182,5 +181,28 @@ public class ProductionController {
     public ResponseEntity<Map<String, Object>> getOrderById(@RequestParam String orderNo) {
         Map<String, Object> order = productionService.getOrderWithCatalogItems(orderNo);
         return ResponseEntity.ok(order);
+    }
+
+    // =============== PREPARATION ORDER =================
+    @PostMapping("/preparation-order")
+    public PreparationOrder insertPreparationOrder(@RequestBody PreparationOrder preparationOrder) {
+        return productionService.insertPreparationOrder(preparationOrder);
+    }
+
+    @PostMapping("/update-preparation-order/{id}")
+    public PreparationOrder updatePreparationOrder(@PathVariable String id, @RequestBody PreparationOrder preparationOrder) {
+        return productionService.updatePreparationOrder(id, preparationOrder);
+    }
+
+    @GetMapping("/get-preparation-order")
+    public List<PreparationOrder> getPreparationOrder() {
+        return productionService.getAllPreparationOrders();
+    }
+
+    @PostMapping("/delete-preparation-order/{id}")
+    public String deletePreparationOrder(@PathVariable String id) {
+        productionService.deletePreparationOrder(id);
+        return "Success Delete Preparation Order";
+
     }
 }
