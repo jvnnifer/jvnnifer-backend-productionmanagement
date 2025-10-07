@@ -66,6 +66,12 @@ public class ProductionController {
         return productionService.getUser(id);
     }
 
+    @GetMapping("/get-user-by-role/{roleId}")
+    public List<User> getUserByRole(@PathVariable String roleId) {
+        return productionService.getUserByRole(roleId);
+    }
+    
+
     @PutMapping("/updateuser/{id}")
     public User updateUser(
             @PathVariable String id,
@@ -173,7 +179,8 @@ public class ProductionController {
     }
 
     @GetMapping("/get-order-by-id")
-    public Optional<Orders> getOrderById(@RequestParam String orderNo) {
-        return productionService.getOrderById(orderNo);
+    public ResponseEntity<Map<String, Object>> getOrderById(@RequestParam String orderNo) {
+        Map<String, Object> order = productionService.getOrderWithCatalogItems(orderNo);
+        return ResponseEntity.ok(order);
     }
 }

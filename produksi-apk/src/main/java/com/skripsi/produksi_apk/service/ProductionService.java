@@ -9,6 +9,7 @@ import com.skripsi.produksi_apk.entity.Orders;
 import com.skripsi.produksi_apk.entity.OrderCatalog;
 import com.skripsi.produksi_apk.entity.Role;
 import com.skripsi.produksi_apk.entity.User;
+import com.skripsi.produksi_apk.model.CatalogItemOrderDTO;
 import com.skripsi.produksi_apk.model.MaterialCatalogDTO;
 import com.skripsi.produksi_apk.model.OrderCatalogDTO;
 import com.skripsi.produksi_apk.repository.*;
@@ -40,18 +41,20 @@ public class ProductionService {
     private final MaterialLogRepository materialLogRepository;
     private final CatalogItemRepository catalogItemRepository;
     private final OrderRepository orderRepository;
+    private OrderCatalogRepository orderCatalogRepository;
 
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     public ProductionService(UserRepository userRepository, RoleRepository roleRepository, 
     MaterialRepository materialRepository, CatalogItemRepository catalogItemRepository, 
-    MaterialLogRepository materialLogRepository, OrderRepository orderRepository) {
+    MaterialLogRepository materialLogRepository, OrderRepository orderRepository, OrderCatalogRepository orderCatalogRepository) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.materialRepository = materialRepository;
         this.catalogItemRepository = catalogItemRepository;
         this.materialLogRepository = materialLogRepository;
         this.orderRepository = orderRepository;
+        this.orderCatalogRepository = orderCatalogRepository;
     }
 
     private String generateUserId() {
@@ -107,6 +110,10 @@ public class ProductionService {
 
     public User getUser(String id) {
         return userRepository.findById(id).orElse(null);
+    }
+
+    public List<User> getUserByRole(String roleId) {
+        return userRepository.findByRole_Id(roleId);
     }
 
     public User updateUser(String id, String username, String password, String roleId) {
@@ -330,5 +337,22 @@ public class ProductionService {
         return orderRepository.findById(orderNo);
     } 
 
+    public Map<String, Object> getOrderWithCatalogItems(String orderNo) {
+        Orders order = orderRepository.findById(orderNo)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
+
+        List<CatalogItemOrderDTO> catalogItems = orderCatalogRepository.findCatalogItemsByOrderNo(orderNo);
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("orderNo", order.getOrderNo());
+        result.put("deptStore", order.getDeptStore());
+        result.put("deadline", order.getDeadline());
+        result.put("notes", order.getNotes());
+        result.put("status", order.getStatus());
+        result.put("attachment", order.getAttachment());
+        result.put("catalogItems", catalogItems);
+
+        return result;
+    }
     
 }
