@@ -3,6 +3,8 @@ package com.skripsi.produksi_apk.entity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 
 @Entity
@@ -23,6 +25,12 @@ public class PreparationOrder {
 
     @Column(name="approval_pic")
     private String approvalPic;
+
+    
+    // @JoinColumn(name = "order_id", referencedColumnName = "order_no")
+    @OneToOne
+    @JoinColumn(name="order_id")
+    private Orders orders;
 
     public String getId() {
         return id;
@@ -62,6 +70,14 @@ public class PreparationOrder {
 
     public void setApprovalPic(String approvalPic) {
         this.approvalPic = approvalPic;
+    }
+
+    public Orders getOrders() {
+        return orders;
+    }
+
+    public void setOrders(Orders orders) {
+        this.orders = orders;
     }
 
     

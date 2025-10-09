@@ -249,9 +249,24 @@ public class ProductionService {
     // ================ MATERIAL LOG ===============
     public MaterialLog insertMaterialLog(MaterialLog materialLog) {
         if (materialLog.getMaterial() != null && materialLog.getMaterial().getId() != null) {
-            Material orderCatalog = materialRepository.findById(materialLog.getMaterial().getId())
+            Material material = materialRepository.findById(materialLog.getMaterial().getId())
                     .orElseThrow(() -> new RuntimeException("Material not found"));
-            materialLog.setMaterial(orderCatalog);
+
+            int currentStock = material.getStockQty();
+            int qtyChange = materialLog.getQty();
+
+            if ("Keluar".equalsIgnoreCase(materialLog.getType())) {
+                if (currentStock < qtyChange) {
+                    throw new RuntimeException("Stok material tidak mencukupi");
+                }
+                material.setStockQty(currentStock - qtyChange);
+            } else if ("Masuk".equalsIgnoreCase(materialLog.getType())) {
+                material.setStockQty(currentStock + qtyChange);
+            }
+
+            materialRepository.save(material);
+
+            materialLog.setMaterial(material);
         }
         materialLog.setCreatedBy(materialLog.getCreatedBy());
         materialLog.setNote(materialLog.getNote());
@@ -285,6 +300,18 @@ public class ProductionService {
         .orElseThrow(() -> new RuntimeException("Material Log not found"));
 
         materialLogRepository.delete(materialLog);
+    }
+
+    public Map<String, Integer> getMaterialLogSummary() {
+        int totalMasuk = materialLogRepository.sumQtyByType("Masuk");
+        int totalKeluar = materialLogRepository.sumQtyByType("Keluar");
+        int totalProduksi = preparationOrderRepository.sumTotalProduksi();
+
+        Map<String, Integer> summary = new HashMap<>();
+        summary.put("totalMasuk", totalMasuk);
+        summary.put("totalKeluar", totalKeluar);
+        summary.put("totalProduksi", totalProduksi);
+        return summary;
     }
 
     // ====================== ORDER ============================
@@ -363,10 +390,14 @@ public class ProductionService {
     // preparation order
     public PreparationOrder insertPreparationOrder(PreparationOrder preparationOrder) {
         preparationOrder.setId(generatePrepOrderId());
-        preparationOrder.setNote(preparationOrder.getNote());
-        preparationOrder.setStatus(preparationOrder.getStatus());;
-        preparationOrder.setApprovalPic(preparationOrder.getApprovalPic());
-        preparationOrder.setProductionPic(preparationOrder.getProductionPic());
+        if (preparationOrder.getOrders() != null && preparationOrder.getOrders().getOrderNo() != null) {
+            Orders existingOrder = orderRepository.findById(preparationOrder.getOrders().getOrderNo())
+                    .orElseThrow(() -> new RuntimeException("Order not found: " + preparationOrder.getOrders().getOrderNo()));
+
+            preparationOrder.setOrders(existingOrder);
+        } else {
+            throw new RuntimeException("Order data is missing in request body");
+        }
         return preparationOrderRepository.save(preparationOrder);
     }
 

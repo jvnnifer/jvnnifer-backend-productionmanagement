@@ -15,6 +15,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Lob;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 
 @Entity
@@ -34,6 +35,10 @@ public class Orders {
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private List<OrderCatalog> orderCatalogs = new ArrayList<>();
+
+    @OneToOne(mappedBy = "orders")
+    @JsonIgnore
+    private PreparationOrder preparationOrder;
 
     @Column(name="status")
     private String status;
@@ -101,6 +106,14 @@ public class Orders {
 
     public void setOrderNo(String orderNo) {
         this.orderNo = orderNo;
+    }
+
+    public PreparationOrder getPreparationOrder() {
+        return preparationOrder;
+    }
+
+    public void setPreparationOrder(PreparationOrder preparationOrder) {
+        this.preparationOrder = preparationOrder;
     }
 
     

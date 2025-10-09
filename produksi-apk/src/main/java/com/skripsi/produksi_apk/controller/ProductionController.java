@@ -158,6 +158,13 @@ public class ProductionController {
         return "Success Delete Material Log";
     }
 
+    @GetMapping("/material-log/summary")
+    public Map<String, Integer> getSummaryMaterialLog() {
+        return productionService.getMaterialLogSummary();
+    }
+    
+    
+
     // ================== ORDER ===========================
     @PostMapping("/order")
     public Orders insertOrder(
@@ -185,8 +192,14 @@ public class ProductionController {
 
     // =============== PREPARATION ORDER =================
     @PostMapping("/preparation-order")
-    public PreparationOrder insertPreparationOrder(@RequestBody PreparationOrder preparationOrder) {
-        return productionService.insertPreparationOrder(preparationOrder);
+    public ResponseEntity<?> insertPreparationOrder(@RequestBody PreparationOrder preparationOrder) {
+        try {
+            PreparationOrder saved = productionService.insertPreparationOrder(preparationOrder);
+            return ResponseEntity.ok(saved);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().body(e.getMessage());
+        }
     }
 
     @PostMapping("/update-preparation-order/{id}")
