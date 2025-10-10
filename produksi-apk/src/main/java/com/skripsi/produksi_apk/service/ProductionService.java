@@ -145,6 +145,10 @@ public class ProductionService {
         return roleRepository.findByIsOwnerNot(1);
     }
 
+    public List<Role> getOwner() {
+        return roleRepository.findByIsOwner(1);
+    }
+
     // ============ MATERIAL ================
     public Material insertMaterial(Material material) {
         material.setId(generateMaterialId());

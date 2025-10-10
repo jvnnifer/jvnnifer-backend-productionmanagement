@@ -9,5 +9,6 @@ import com.skripsi.produksi_apk.entity.Role;
 
 public interface RoleRepository extends JpaRepository<Role, String> {
     List<Role> findByIsOwnerNot(Integer isOwner);
+    List<Role> findByIsOwner(Integer isOwner);
 }
 

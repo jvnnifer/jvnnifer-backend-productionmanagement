@@ -83,6 +83,11 @@ public class ProductionController {
         return productionService.getAllRoles();
     }
 
+    @GetMapping("/owner-role")
+    public List<Role> getOwnerRole() {
+        return productionService.getOwner();
+    }
+
     // ============= MATERIAL ==================
     @PostMapping("/material")
     public Material insertMaterial(@RequestBody Material material) {
