@@ -24,6 +24,7 @@ import com.skripsi.produksi_apk.entity.MaterialLog;
 import com.skripsi.produksi_apk.entity.Orders;
 import com.skripsi.produksi_apk.entity.PreparationOrder;
 import com.skripsi.produksi_apk.entity.Role;
+import com.skripsi.produksi_apk.entity.RolePrivileges;
 import com.skripsi.produksi_apk.entity.User;
 import com.skripsi.produksi_apk.service.ProductionService;
 
@@ -222,5 +223,16 @@ public class ProductionController {
         productionService.deletePreparationOrder(id);
         return "Success Delete Preparation Order";
 
+    }
+
+    // ROLE & PRIVILEGES
+    @GetMapping("/role")
+    public List<RolePrivileges> getAllRolePrivileges() {
+        return productionService.getAllRolePrivileges();
+    }
+
+    @GetMapping("/{roleId}/privileges")
+    public RolePrivileges getPrivilegesByRole(@PathVariable String roleId) {
+        return productionService.getPrivilegesByRole(roleId);
     }
 }

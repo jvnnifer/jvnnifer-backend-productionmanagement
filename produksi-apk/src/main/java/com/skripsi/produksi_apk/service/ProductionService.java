@@ -9,6 +9,7 @@ import com.skripsi.produksi_apk.entity.Orders;
 import com.skripsi.produksi_apk.entity.PreparationOrder;
 import com.skripsi.produksi_apk.entity.OrderCatalog;
 import com.skripsi.produksi_apk.entity.Role;
+import com.skripsi.produksi_apk.entity.RolePrivileges;
 import com.skripsi.produksi_apk.entity.User;
 import com.skripsi.produksi_apk.model.CatalogItemOrderDTO;
 import com.skripsi.produksi_apk.model.MaterialCatalogDTO;
@@ -44,6 +45,7 @@ public class ProductionService {
     private final OrderRepository orderRepository;
     private final OrderCatalogRepository orderCatalogRepository;
     private final PreparationOrderRepository preparationOrderRepository;
+    private final RolePrivilegesRepository rolePrivilegesRepository;
 
 
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
@@ -51,7 +53,7 @@ public class ProductionService {
     public ProductionService(UserRepository userRepository, RoleRepository roleRepository, 
     MaterialRepository materialRepository, CatalogItemRepository catalogItemRepository, 
     MaterialLogRepository materialLogRepository, OrderRepository orderRepository, OrderCatalogRepository orderCatalogRepository,
-    PreparationOrderRepository preparationOrderRepository) {
+    PreparationOrderRepository preparationOrderRepository, RolePrivilegesRepository rolePrivilegesRepository) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.materialRepository = materialRepository;
@@ -60,6 +62,7 @@ public class ProductionService {
         this.orderRepository = orderRepository;
         this.orderCatalogRepository = orderCatalogRepository;
         this.preparationOrderRepository = preparationOrderRepository;
+        this.rolePrivilegesRepository = rolePrivilegesRepository;
     }
 
     private String generateUserId() {
@@ -427,6 +430,16 @@ public class ProductionService {
         PreparationOrder preparationOrder = preparationOrderRepository.findById(id)
         .orElseThrow(() -> new RuntimeException("Preparation Order not found"));
         preparationOrderRepository.delete(preparationOrder);
+    }
+
+    // =============== ROLE & PRIVILEGE =============
+    public List<RolePrivileges> getAllRolePrivileges() {
+        return rolePrivilegesRepository.findAll();
+    }
+
+    public RolePrivileges getPrivilegesByRole(String roleId) {
+        return rolePrivilegesRepository.findById(roleId)
+                .orElseThrow(() -> new RuntimeException("Role not found: " + roleId));
     }
 
 }
