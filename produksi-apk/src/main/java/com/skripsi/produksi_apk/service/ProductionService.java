@@ -7,6 +7,7 @@ import com.skripsi.produksi_apk.entity.MaterialCatalog;
 import com.skripsi.produksi_apk.entity.MaterialLog;
 import com.skripsi.produksi_apk.entity.Orders;
 import com.skripsi.produksi_apk.entity.PreparationOrder;
+import com.skripsi.produksi_apk.entity.Privileges;
 import com.skripsi.produksi_apk.entity.OrderCatalog;
 import com.skripsi.produksi_apk.entity.Role;
 import com.skripsi.produksi_apk.entity.RolePrivileges;
@@ -21,6 +22,7 @@ import java.util.Date;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -46,14 +48,21 @@ public class ProductionService {
     private final OrderCatalogRepository orderCatalogRepository;
     private final PreparationOrderRepository preparationOrderRepository;
     private final RolePrivilegesRepository rolePrivilegesRepository;
+    private final PrivilegesRepository privilegesRepository;
 
 
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
-    public ProductionService(UserRepository userRepository, RoleRepository roleRepository, 
-    MaterialRepository materialRepository, CatalogItemRepository catalogItemRepository, 
-    MaterialLogRepository materialLogRepository, OrderRepository orderRepository, OrderCatalogRepository orderCatalogRepository,
-    PreparationOrderRepository preparationOrderRepository, RolePrivilegesRepository rolePrivilegesRepository) {
+    public ProductionService(UserRepository userRepository, 
+    RoleRepository roleRepository, 
+    MaterialRepository materialRepository, 
+    CatalogItemRepository catalogItemRepository, 
+    MaterialLogRepository materialLogRepository, 
+    OrderRepository orderRepository, 
+    OrderCatalogRepository orderCatalogRepository,
+    PreparationOrderRepository preparationOrderRepository,
+    RolePrivilegesRepository rolePrivilegesRepository,
+    PrivilegesRepository privilegesRepository) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.materialRepository = materialRepository;
@@ -63,6 +72,7 @@ public class ProductionService {
         this.orderCatalogRepository = orderCatalogRepository;
         this.preparationOrderRepository = preparationOrderRepository;
         this.rolePrivilegesRepository = rolePrivilegesRepository;
+        this.privilegesRepository = privilegesRepository;
     }
 
     private String generateUserId() {
@@ -433,13 +443,76 @@ public class ProductionService {
     }
 
     // =============== ROLE & PRIVILEGE =============
+    public Role updateRolePrivileges(String roleId, List<String> privilegeIds) {
+        Role role = roleRepository.findById(roleId)
+                .orElseThrow(() -> new RuntimeException("Role not found: " + roleId));
+
+        List<Privileges> privileges = privilegesRepository.findAllById(privilegeIds);
+        role.setPrivileges(new HashSet<>(privileges));
+
+        return roleRepository.save(role);
+    }
+    
     public List<RolePrivileges> getAllRolePrivileges() {
         return rolePrivilegesRepository.findAll();
     }
 
-    public RolePrivileges getPrivilegesByRole(String roleId) {
-        return rolePrivilegesRepository.findById(roleId)
-                .orElseThrow(() -> new RuntimeException("Role not found: " + roleId));
+    public List<RolePrivileges> getPrivilegesByRole(String roleId) {
+        return rolePrivilegesRepository.findByPkRoleId(roleId);
+    }
+    
+    // =========================== DASHBOARD ================================
+    // Menghitung preparation order per bulan
+    public Map<Integer, Integer> getPreparationOrderPerMonth(int year) {
+        List<Object[]> results = preparationOrderRepository.countPerMonth(year);
+        Map<Integer, Integer> data = new HashMap<>();
+        for (Object[] row : results) {
+            Integer month = ((Number) row[0]).intValue(); 
+            Integer count = ((Number) row[1]).intValue();
+            data.put(month, count);
+        }
+        return data;
+    }
+
+    // Menghitung preparation order per tahun
+    public Map<Integer, Integer> getPreparationOrderPerYear() {
+        int currentYear = java.time.Year.now().getValue();
+        int startYear = currentYear - 4;
+        List<Object[]> results = preparationOrderRepository.countPerYear(startYear);
+
+        Map<Integer, Integer> data = new HashMap<>();
+        for (Object[] row : results) {
+            Integer year = ((Number) row[0]).intValue();
+            Integer count = ((Number) row[1]).intValue();
+            data.put(year, count);
+        }
+        return data;
+    }
+
+    public Map<Integer, Integer> getOrderPerMonth(int year) {
+        List<Object[]> results = orderRepository.countPerMonth(year);
+        Map<Integer, Integer> data = new HashMap<>();
+        for (Object[] row : results) {
+            Integer month = ((Number) row[0]).intValue(); 
+            Integer count = ((Number) row[1]).intValue();
+            data.put(month, count);
+        }
+        return data;
+    }
+
+    // Menghitung  order per tahun
+    public Map<Integer, Integer> getOrderPerYear() {
+        int currentYear = java.time.Year.now().getValue();
+        int startYear = currentYear - 4;
+        List<Object[]> results = orderRepository.countPerYear(startYear);
+
+        Map<Integer, Integer> data = new HashMap<>();
+        for (Object[] row : results) {
+            Integer year = ((Number) row[0]).intValue();
+            Integer count = ((Number) row[1]).intValue();
+            data.put(year, count);
+        }
+        return data;
     }
 
 }

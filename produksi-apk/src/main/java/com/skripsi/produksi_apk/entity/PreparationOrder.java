@@ -1,11 +1,16 @@
 package com.skripsi.produksi_apk.entity;
 
+import java.util.Date;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
 
 @Entity
 @Table(name="preparation_order")
@@ -25,6 +30,14 @@ public class PreparationOrder {
 
     @Column(name="approval_pic")
     private String approvalPic;
+
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date createdDate;
+
+    @PrePersist
+    protected void onCreate() {
+        createdDate = new Date(); 
+    }
 
     
     // @JoinColumn(name = "order_id", referencedColumnName = "order_no")
@@ -78,6 +91,14 @@ public class PreparationOrder {
 
     public void setOrders(Orders orders) {
         this.orders = orders;
+    }
+
+    public Date getCreatedDate() {
+        return createdDate;
+    }
+
+    public void setCreatedDate(Date createdDate) {
+        this.createdDate = createdDate;
     }
 
     

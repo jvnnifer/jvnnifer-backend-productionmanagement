@@ -226,13 +226,44 @@ public class ProductionController {
     }
 
     // ROLE & PRIVILEGES
-    @GetMapping("/role")
-    public List<RolePrivileges> getAllRolePrivileges() {
+
+    @GetMapping("/allprivileges")
+    public List<RolePrivileges> getAllPrivileges() {
         return productionService.getAllRolePrivileges();
     }
-
+    
     @GetMapping("/{roleId}/privileges")
-    public RolePrivileges getPrivilegesByRole(@PathVariable String roleId) {
+    public List<RolePrivileges> getPrivilegesByRole(@PathVariable String roleId) {
         return productionService.getPrivilegesByRole(roleId);
+    }
+
+    @PostMapping("/update-privileges/{roleId}")
+    public ResponseEntity<Role> updateRolePrivileges(
+            @PathVariable String roleId,
+            @RequestBody List<String> privilegeIds) {
+
+        Role updatedRole = productionService.updateRolePrivileges(roleId, privilegeIds);
+        return ResponseEntity.ok(updatedRole);
+    }
+    
+    // DASHBOARD
+    @GetMapping("/dashboard/preparation-order/monthly")
+    public Map<Integer, Integer> getMonthly(@RequestParam int year) {
+        return productionService.getPreparationOrderPerMonth(year);
+    }
+
+    @GetMapping("/dashboard/preparation-order/yearly")
+    public Map<Integer, Integer> getYearly() {
+        return productionService.getPreparationOrderPerYear();
+    }
+
+    @GetMapping("/dashboard/order/monthly")
+    public Map<Integer, Integer> getOrderMonthly(@RequestParam int year) {
+        return productionService.getOrderPerMonth(year);
+    }
+
+    @GetMapping("/dashboard/order/yearly")
+    public Map<Integer, Integer> getOrderYearly() {
+        return productionService.getOrderPerYear();
     }
 }

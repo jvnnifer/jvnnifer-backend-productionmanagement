@@ -1,8 +1,18 @@
 package com.skripsi.produksi_apk.entity;
+import java.util.HashSet;
+import java.util.Set;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 
 @Entity
 @Table(name="role")
@@ -16,6 +26,15 @@ public class Role {
 
     @Column(name="isowner")
     private int isOwner;
+
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+        name = "role_privileges",
+        joinColumns = @JoinColumn(name = "role_id"),
+        inverseJoinColumns = @JoinColumn(name = "privilege_id")
+    )
+    @JsonIgnore
+    private Set<Privileges> privileges = new HashSet<>();
 
     public String getId() {
         return id;
@@ -40,5 +59,18 @@ public class Role {
     public void setIsOwner(int isOwner) {
         this.isOwner = isOwner;
     }
+
+    public Set<Privileges> getPrivileges() {
+        return privileges;
+    }
+
+    public void setPrivileges(Set<Privileges> privileges) {
+        this.privileges = privileges;
+    }
+
+    
+    
+
+    
 
 }

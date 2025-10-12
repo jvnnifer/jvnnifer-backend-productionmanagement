@@ -16,7 +16,10 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Lob;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
 
 @Entity
 @Table(name="orders")
@@ -45,6 +48,14 @@ public class Orders {
 
     @Column(name="notes")
     private String notes;
+
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date createdDate;
+
+    @PrePersist
+    protected void onCreate() {
+        createdDate = new Date(); 
+    }
     
     @Lob
     @Column(name = "attachment", nullable = true)
@@ -116,5 +127,11 @@ public class Orders {
         this.preparationOrder = preparationOrder;
     }
 
-    
+    public Date getCreatedDate() {
+        return createdDate;
+    }
+
+    public void setCreatedDate(Date createdDate) {
+        this.createdDate = createdDate;
+    }
 }
