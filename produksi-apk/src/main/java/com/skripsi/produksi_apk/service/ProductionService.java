@@ -191,9 +191,11 @@ public class ProductionService {
     public void deleteMaterial(String id) {
         Material material = materialRepository.findById(id)
         .orElseThrow(() -> new RuntimeException("Material not found"));
-        material.getCatalogs().clear();
 
-        materialRepository.delete(material);
+    
+        material.setIsDelete(true);
+
+        materialRepository.save(material);
     }
 
     // =========== CATALOG ITEM ===============
@@ -260,7 +262,9 @@ public class ProductionService {
         CatalogItem catalogItem = catalogItemRepository.findById(id)
         .orElseThrow(() -> new RuntimeException("Catalog Item not found"));
 
-        catalogItemRepository.delete(catalogItem);
+        catalogItem.setIsDelete(true);
+
+        catalogItemRepository.save(catalogItem);
     }
 
     // ================ MATERIAL LOG ===============
@@ -440,6 +444,13 @@ public class ProductionService {
         PreparationOrder preparationOrder = preparationOrderRepository.findById(id)
         .orElseThrow(() -> new RuntimeException("Preparation Order not found"));
         preparationOrderRepository.delete(preparationOrder);
+    }
+
+    public PreparationOrder updatePreparationOrderStatus(String id, String status) {
+        return preparationOrderRepository.findById(id).map(preparationOrder -> {
+            preparationOrder.setStatus(status);
+            return preparationOrderRepository.save(preparationOrder);
+        }).orElse(null);
     }
 
     // =============== ROLE & PRIVILEGE =============

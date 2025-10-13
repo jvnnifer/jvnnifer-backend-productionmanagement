@@ -125,7 +125,7 @@ public class ProductionController {
         return productionService.insertCatalogItem(title, createdBy, description, price, materialsJson, file);
     }
 
-    @PostMapping("/update-catalog/{id}")
+    @PutMapping("/update-catalog/{id}")
     public CatalogItem updateCatalogItem(@PathVariable String id, @RequestBody CatalogItem catalogItem) {
         return productionService.updateCatalogItem(id, catalogItem);
     }
@@ -224,6 +224,18 @@ public class ProductionController {
         return "Success Delete Preparation Order";
 
     }
+
+    @PutMapping("/update-preporder-status/{id}")
+    public ResponseEntity<PreparationOrder> updatePreparationOrderStatus(
+            @PathVariable String id,
+            @RequestBody Map<String, String> body) {
+        
+        String status = body.get("status");
+        System.out.println("Received status: " + status); 
+        PreparationOrder updated = productionService.updatePreparationOrderStatus(id, status);
+        return ResponseEntity.ok(updated);
+    }
+    
 
     // ROLE & PRIVILEGES
 

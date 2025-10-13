@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.hibernate.annotations.JdbcType;
+import org.hibernate.annotations.Where;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.CascadeType;
@@ -16,6 +17,7 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name="catalog_item")
+@Where(clause = "is_delete != true")
 public class CatalogItem {
     @Id
     @Column(name="id")
@@ -32,6 +34,17 @@ public class CatalogItem {
 
     @Column(name="price")
     private Double price;
+
+    @Column(name="is_delete")
+    private Boolean isDelete = false;
+
+    public Boolean getIsDelete() {
+        return isDelete;
+    }
+
+    public void setIsDelete(Boolean isDelete) {
+        this.isDelete = isDelete;
+    }
 
     @Lob
     @Column(name = "attachment", nullable = true)
