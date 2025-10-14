@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -20,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.skripsi.produksi_apk.entity.CatalogItem;
 import com.skripsi.produksi_apk.entity.Material;
+import com.skripsi.produksi_apk.entity.MaterialCatalog;
 import com.skripsi.produksi_apk.entity.MaterialLog;
 import com.skripsi.produksi_apk.entity.Orders;
 import com.skripsi.produksi_apk.entity.PreparationOrder;
@@ -133,6 +135,11 @@ public class ProductionController {
     @GetMapping("/get-catalog")
     public List<CatalogItem> getCatalogItems() {
         return productionService.getAllCatalogItem();
+    }
+
+    @GetMapping("/get-materials-for-catalog/{id}")
+    public Optional<MaterialCatalog> getCatalogItems(@PathVariable Long id) {
+        return productionService.getAllMaterialForCatalogItems(id);
     }
 
     @PostMapping("/delete-catalog/{id}")

@@ -36,6 +36,8 @@ import org.springframework.web.multipart.MultipartFile;
 @Service
 public class ProductionService {
 
+    private final MaterialCatalogRepository materialCatalogRepository;
+
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
@@ -62,7 +64,8 @@ public class ProductionService {
     OrderCatalogRepository orderCatalogRepository,
     PreparationOrderRepository preparationOrderRepository,
     RolePrivilegesRepository rolePrivilegesRepository,
-    PrivilegesRepository privilegesRepository) {
+    PrivilegesRepository privilegesRepository, 
+    MaterialCatalogRepository materialCatalogRepository) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.materialRepository = materialRepository;
@@ -73,6 +76,7 @@ public class ProductionService {
         this.preparationOrderRepository = preparationOrderRepository;
         this.rolePrivilegesRepository = rolePrivilegesRepository;
         this.privilegesRepository = privilegesRepository;
+        this.materialCatalogRepository = materialCatalogRepository; 
     }
 
     private String generateUserId() {
@@ -257,6 +261,11 @@ public class ProductionService {
     public List<CatalogItem> getAllCatalogItem() {
         return catalogItemRepository.findAll();
     }
+
+    public Optional<MaterialCatalog> getAllMaterialForCatalogItems(Long id) {
+        return materialCatalogRepository.findById(id);
+    }
+
 
     public void deleteCatalogItem(String id) {
         CatalogItem catalogItem = catalogItemRepository.findById(id)
