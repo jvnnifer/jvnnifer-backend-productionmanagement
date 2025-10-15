@@ -26,11 +26,23 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
+
+import javax.xml.catalog.Catalog;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.multipart.MultipartFile;
 
 @Service
@@ -210,60 +222,131 @@ public class ProductionService {
         Double price,
         String materialsJson,
         MultipartFile file
-) throws IOException {
+    ) throws IOException {
 
-    CatalogItem catalogItem = new CatalogItem();
-    catalogItem.setId(generateCatalogId());
-    catalogItem.setTitle(title);
-    catalogItem.setCreatedBy(createdBy);
-    catalogItem.setDescription(description);
-    catalogItem.setPrice(price);
+        CatalogItem catalogItem = new CatalogItem();
+        catalogItem.setId(generateCatalogId());
+        catalogItem.setTitle(title);
+        catalogItem.setCreatedBy(createdBy);
+        catalogItem.setDescription(description);
+        catalogItem.setPrice(price);
 
-    if (file != null && !file.isEmpty()) {
-        catalogItem.setAttachment(file.getBytes());
+        if (file != null && !file.isEmpty()) {
+            catalogItem.setAttachment(file.getBytes());
+        }
+
+        ObjectMapper mapper = new ObjectMapper();
+        List<MaterialCatalogDTO> materialsDto = Arrays.asList(
+            mapper.readValue(materialsJson, MaterialCatalogDTO[].class)
+        );
+
+        List<MaterialCatalog> materialEntities = new ArrayList<>();
+        for (MaterialCatalogDTO dto : materialsDto) {
+            MaterialCatalog mc = new MaterialCatalog();
+            mc.setCatalog(catalogItem);
+
+            Material material = materialRepository.findById(dto.getMaterialId())
+                .orElseThrow(() -> new RuntimeException("Material not found: " + dto.getMaterialId()));
+
+            mc.setMaterial(material);
+            mc.setReqQty(dto.getReqQty());
+
+            materialEntities.add(mc);
+        }
+        catalogItem.setMaterialCatalogs(materialEntities);
+        return catalogItemRepository.save(catalogItem);
     }
 
-    ObjectMapper mapper = new ObjectMapper();
-    List<MaterialCatalogDTO> materialsDto = Arrays.asList(
-        mapper.readValue(materialsJson, MaterialCatalogDTO[].class)
-    );
 
-    List<MaterialCatalog> materialEntities = new ArrayList<>();
-    for (MaterialCatalogDTO dto : materialsDto) {
-        MaterialCatalog mc = new MaterialCatalog();
-        mc.setCatalog(catalogItem);
+    public CatalogItem updateCatalogItem(
+        String catalogId,
+        String title,
+        String createdBy,
+        String description,
+        Double price,
+        String materialsJson,
+        MultipartFile file
+    ) throws IOException {
 
-        Material material = materialRepository.findById(dto.getMaterialId())
-            .orElseThrow(() -> new RuntimeException("Material not found: " + dto.getMaterialId()));
+        CatalogItem existingCatalogItem = catalogItemRepository.findById(catalogId)
+                .orElseThrow(() -> new RuntimeException("Catalog Item not found: " + catalogId));
+        existingCatalogItem.setTitle(title);
+        existingCatalogItem.setCreatedBy(createdBy);
+        existingCatalogItem.setDescription(description);
+        existingCatalogItem.setPrice(price);
 
-        mc.setMaterial(material);
-        mc.setReqQty(dto.getReqQty());
+        if (file != null && !file.isEmpty()) {
+            existingCatalogItem.setAttachment(file.getBytes());
+        }
 
-        materialEntities.add(mc);
-    }
-    catalogItem.setMaterialCatalogs(materialEntities);
-    return catalogItemRepository.save(catalogItem);
-}
+        ObjectMapper mapper = new ObjectMapper();
+        List<MaterialCatalogDTO> materialsDto = Arrays.asList(
+            mapper.readValue(materialsJson, MaterialCatalogDTO[].class)
+        );
 
+        List<MaterialCatalog> materialEntities = new ArrayList<>();
+        for (MaterialCatalogDTO dto : materialsDto) {
+            MaterialCatalog mc = new MaterialCatalog();
+            mc.setCatalog(existingCatalogItem);
 
-    public CatalogItem updateCatalogItem(String id, CatalogItem updatedCatalogItem) {
-        return catalogItemRepository.findById(id).map(catalog -> {
-            catalog.setCreatedBy(updatedCatalogItem.getCreatedBy());
-            catalog.setDescription(updatedCatalogItem.getDescription());
-            catalog.setMaterialCatalogs(updatedCatalogItem.getMaterialCatalogs());
-            catalog.setPrice(updatedCatalogItem.getPrice());
-            catalog.setTitle(updatedCatalogItem.getTitle());
-            catalog.setAttachment(updatedCatalogItem.getAttachment());
-            return catalogItemRepository.save(catalog);
-        }).orElse(null);
+            Material material = materialRepository.findById(dto.getMaterialId())
+                .orElseThrow(() -> new RuntimeException("Material not found: " + dto.getMaterialId()));
+
+            mc.setMaterial(material);
+            mc.setReqQty(dto.getReqQty());
+
+            materialEntities.add(mc);
+        }
+        existingCatalogItem.setMaterialCatalogs(materialEntities);
+        existingCatalogItem.getMaterialCatalogs().clear();
+
+        for (MaterialCatalogDTO dto : materialsDto) {
+            MaterialCatalog mc = new MaterialCatalog();
+            mc.setCatalog(existingCatalogItem);
+
+            Material material = materialRepository.findById(dto.getMaterialId())
+                    .orElseThrow(() -> new RuntimeException("Material not found: " + dto.getMaterialId()));
+
+            mc.setMaterial(material);
+            mc.setReqQty(dto.getReqQty());
+
+            existingCatalogItem.getMaterialCatalogs().add(mc);
+        }
+
+        return catalogItemRepository.save(existingCatalogItem);
     }
 
     public List<CatalogItem> getAllCatalogItem() {
         return catalogItemRepository.findAll();
     }
 
-    public Optional<MaterialCatalog> getAllMaterialForCatalogItems(Long id) {
-        return materialCatalogRepository.findById(id);
+    public Map<String, Object> getMaterialsForCatalog(String catalogId) {
+        List<MaterialCatalog> materialCatalogs = materialCatalogRepository.findByCatalog_Id(catalogId);
+
+        if (materialCatalogs.isEmpty()) {
+            throw new RuntimeException("No materials found for catalog id: " + catalogId);
+        }
+
+        CatalogItem catalog = materialCatalogs.get(0).getCatalog();
+
+        List<Map<String, Object>> materials = materialCatalogs.stream()
+            .map(mc -> {
+                Map<String, Object> map = new HashMap<>();
+                map.put("materialId", mc.getMaterial().getId());
+                map.put("materialName", mc.getMaterial().getMaterialName());
+                map.put("unit", mc.getMaterial().getUnit());
+                map.put("reqQty", mc.getReqQty());
+                return map;
+            })
+            .collect(Collectors.toList());
+
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("catalogId", catalog.getId());
+        response.put("title", catalog.getTitle());
+        response.put("materials", materials);
+
+        return response;
     }
 
 
@@ -389,6 +472,60 @@ public class ProductionService {
         order.setOrderCatalogs(orderCatalogEntities);
 
         return orderRepository.save(order);
+    }
+
+    public Orders updateOrder(
+        String orderNo,
+        String deptStore,
+        Date deadline,
+        String status,
+        String notes,
+        String orderCatalogsJson,
+        MultipartFile file
+    ) throws IOException {
+
+        Orders existingOrder = orderRepository.findById(orderNo)
+                .orElseThrow(() -> new RuntimeException("Order not found: " + orderNo));
+
+        existingOrder.setDeptStore(deptStore);
+        existingOrder.setDeadline(deadline);
+        existingOrder.setStatus(status);
+        existingOrder.setNotes(notes);
+
+        if (file != null && !file.isEmpty()) {
+            existingOrder.setAttachment(file.getBytes());
+        }
+
+        ObjectMapper mapper = new ObjectMapper();
+        List<OrderCatalogDTO> catalogsDto = Arrays.asList(
+                mapper.readValue(orderCatalogsJson, OrderCatalogDTO[].class)
+        );
+
+        existingOrder.getOrderCatalogs().clear();
+
+        List<OrderCatalog> orderCatalogEntities = new ArrayList<>();
+        for (OrderCatalogDTO dto : catalogsDto) {
+            OrderCatalog oc = new OrderCatalog();
+            oc.setOrder(existingOrder);
+
+            CatalogItem catalogItem = catalogItemRepository.findById(dto.getCatalogId())
+                    .orElseThrow(() -> new RuntimeException("Catalog not found: " + dto.getCatalogId()));
+
+            oc.setCatalogItem(catalogItem);
+            oc.setQty(dto.getQty());
+            orderCatalogEntities.add(oc);
+        }
+
+        existingOrder.getOrderCatalogs().addAll(orderCatalogEntities);
+
+        return orderRepository.save(existingOrder);
+    }
+
+
+    public byte[] getOrderAttachment(String orderNo) {
+        Orders order = orderRepository.findById(orderNo)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
+        return order.getAttachment();
     }
 
     public List<Orders> getAllOrders() {

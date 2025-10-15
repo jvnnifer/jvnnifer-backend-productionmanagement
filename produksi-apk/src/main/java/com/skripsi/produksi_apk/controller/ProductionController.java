@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -127,9 +128,17 @@ public class ProductionController {
         return productionService.insertCatalogItem(title, createdBy, description, price, materialsJson, file);
     }
 
-    @PutMapping("/update-catalog/{id}")
-    public CatalogItem updateCatalogItem(@PathVariable String id, @RequestBody CatalogItem catalogItem) {
-        return productionService.updateCatalogItem(id, catalogItem);
+    @PutMapping(value = "/update-catalog/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public CatalogItem updateCatalogItem(
+            @PathVariable String id,
+            @RequestParam("title") String title,
+            @RequestParam("createdBy") String createdBy,
+            @RequestParam("description") String description,
+            @RequestParam("price") Double price,
+            @RequestParam("materials") String materialsJson,
+            @RequestPart(value = "file", required = false) MultipartFile file
+    ) throws IOException {
+        return productionService.updateCatalogItem(id, title, createdBy, description, price, materialsJson, file);
     }
 
     @GetMapping("/get-catalog")
@@ -138,8 +147,9 @@ public class ProductionController {
     }
 
     @GetMapping("/get-materials-for-catalog/{id}")
-    public Optional<MaterialCatalog> getCatalogItems(@PathVariable Long id) {
-        return productionService.getAllMaterialForCatalogItems(id);
+    public ResponseEntity<Map<String, Object>> getMaterialsForCatalog(@PathVariable String id) {
+        Map<String, Object> result = productionService.getMaterialsForCatalog(id);
+        return ResponseEntity.ok(result);
     }
 
     @PostMapping("/delete-catalog/{id}")
@@ -191,6 +201,19 @@ public class ProductionController {
         
         return productionService.insertOrder(orderNo, deptStore, deadline, status, notes, orderCatalog, file);
     }
+
+    @PutMapping(value = "/update-order/{orderNo}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public Orders updateOrder(
+            @PathVariable String orderNo,
+            @RequestParam("deptStore") String deptStore,
+            @RequestParam("deadline") @DateTimeFormat(pattern = "yyyy-MM-dd") Date deadline,
+            @RequestParam("status") String status,
+            @RequestParam("notes") String notes,
+            @RequestParam("orderCatalog") String orderCatalogsJson,
+            @RequestPart(value = "file", required = false) MultipartFile file
+    ) throws IOException {
+        return productionService.updateOrder(orderNo, deptStore, deadline, status, notes, orderCatalogsJson, file);
+    }
     
     @GetMapping("/get-order")
     public List<Orders> getOrders() {
@@ -202,6 +225,20 @@ public class ProductionController {
         Map<String, Object> order = productionService.getOrderWithCatalogItems(orderNo);
         return ResponseEntity.ok(order);
     }
+
+    @GetMapping("/order/{orderNo}/attachment")
+    public ResponseEntity<byte[]> getOrderAttachment(@PathVariable String orderNo) {
+        byte[] attachment = productionService.getOrderAttachment(orderNo);
+
+        if (attachment == null || attachment.length == 0) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.IMAGE_JPEG_VALUE)
+                .body(attachment);
+    }
+
 
     // =============== PREPARATION ORDER =================
     @PostMapping("/preparation-order")
