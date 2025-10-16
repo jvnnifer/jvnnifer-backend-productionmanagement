@@ -215,13 +215,6 @@ public class ProductionController {
         if(orderNo == null || orderNo.isEmpty()){
             throw new IllegalArgumentException("OrderNo must not be null");
         }
-        System.out.println("OrderNo: " + orderNo);
-        System.out.println("DeptStore: " + deptStore);
-        System.out.println("Deadline: " + deadline);
-        System.out.println("Status: " + status);
-        System.out.println("Notes: " + notes);
-        System.out.println("OrderCatalog: " + orderCatalogsJson);
-        System.out.println("File: " + (file != null ? file.getOriginalFilename() : "null"));
 
         return productionService.updateOrder(orderNo, deptStore, deadline, status, notes, orderCatalogsJson, file);
     }
