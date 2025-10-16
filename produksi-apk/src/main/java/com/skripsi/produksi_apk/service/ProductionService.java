@@ -284,20 +284,6 @@ public class ProductionService {
             mapper.readValue(materialsJson, MaterialCatalogDTO[].class)
         );
 
-        List<MaterialCatalog> materialEntities = new ArrayList<>();
-        for (MaterialCatalogDTO dto : materialsDto) {
-            MaterialCatalog mc = new MaterialCatalog();
-            mc.setCatalog(existingCatalogItem);
-
-            Material material = materialRepository.findById(dto.getMaterialId())
-                .orElseThrow(() -> new RuntimeException("Material not found: " + dto.getMaterialId()));
-
-            mc.setMaterial(material);
-            mc.setReqQty(dto.getReqQty());
-
-            materialEntities.add(mc);
-        }
-        existingCatalogItem.setMaterialCatalogs(materialEntities);
         existingCatalogItem.getMaterialCatalogs().clear();
 
         for (MaterialCatalogDTO dto : materialsDto) {
