@@ -1,9 +1,6 @@
 package com.skripsi.produksi_apk.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 public class OrderCatalogDTO {
-    @JsonProperty("catalog_id")
     private String catalogId;
     private Integer qty;
 

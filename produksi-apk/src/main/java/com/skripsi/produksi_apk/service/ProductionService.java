@@ -535,7 +535,7 @@ public class ProductionService {
         result.put("notes", order.getNotes());
         result.put("status", order.getStatus());
         result.put("attachment", order.getAttachment());
-        result.put("catalogItems", catalogItems);
+        result.put("catalogs", catalogItems);
 
         return result;
     }

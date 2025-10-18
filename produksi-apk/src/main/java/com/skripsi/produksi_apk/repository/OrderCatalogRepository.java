@@ -13,7 +13,7 @@ import java.util.List;
 public interface OrderCatalogRepository extends CrudRepository<OrderCatalog, Long> {
 
     @Query("""
-        SELECT new com.skripsi.produksi_apk.model.CatalogItemOrderDTO(c.title, oc.qty)
+        SELECT new com.skripsi.produksi_apk.model.CatalogItemOrderDTO(c.id, c.title, oc.qty)
         FROM OrderCatalog oc
         JOIN oc.catalogItem c
         WHERE oc.order.orderNo = :orderNo
