@@ -28,21 +28,11 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import javax.xml.catalog.Catalog;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.multipart.MultipartFile;
 
 @Service
@@ -201,7 +191,7 @@ public class ProductionService {
     }
 
     public List<Material> getAllMaterials() {
-        return materialRepository.findAll();
+        return materialRepository.findAllActive();
     }
 
     public void deleteMaterial(String id) {
@@ -303,7 +293,7 @@ public class ProductionService {
     }
 
     public List<CatalogItem> getAllCatalogItem() {
-        return catalogItemRepository.findAll();
+        return catalogItemRepository.findAllActive();
     }
 
     public Map<String, Object> getMaterialsForCatalog(String catalogId) {
@@ -560,6 +550,7 @@ public class ProductionService {
             preparationOrder.setNote(updatedPreparationOrder.getNote());
             preparationOrder.setProductionPic(updatedPreparationOrder.getProductionPic());
             preparationOrder.setStatus(updatedPreparationOrder.getStatus());
+
             return preparationOrderRepository.save(preparationOrder);
         }).orElse(null);
     }
@@ -581,6 +572,16 @@ public class ProductionService {
     public PreparationOrder updatePreparationOrderStatus(String id, String status) {
         return preparationOrderRepository.findById(id).map(preparationOrder -> {
             preparationOrder.setStatus(status);
+            if ("Ready to Process".equalsIgnoreCase(status)) {
+                Orders linkedOrder = preparationOrder.getOrders();
+                if (linkedOrder != null) {
+                    Orders existingOrder = orderRepository.findById(linkedOrder.getOrderNo()).orElse(null);
+                    if (existingOrder != null) {
+                        existingOrder.setStatus("On Progress");
+                        orderRepository.save(existingOrder);
+                    }
+                } 
+            }
             return preparationOrderRepository.save(preparationOrder);
         }).orElse(null);
     }
