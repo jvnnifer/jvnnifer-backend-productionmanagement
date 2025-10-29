@@ -87,6 +87,12 @@ public class ProductionController {
         return productionService.getAllRoles();
     }
 
+    @GetMapping("/roles-all")
+    public List<Role> getRolesAll() {
+        return productionService.getRolesFull();
+    }
+    
+
     @GetMapping("/owner-role")
     public List<Role> getOwnerRole() {
         return productionService.getOwner();
@@ -286,6 +292,11 @@ public class ProductionController {
     
 
     // ROLE & PRIVILEGES
+
+    @PostMapping("/role")
+    public Role insertRole(@RequestBody Role role) {
+        return productionService.insertRole(role);
+    }
 
     @GetMapping("/allprivileges")
     public List<RolePrivileges> getAllPrivileges() {

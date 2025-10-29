@@ -86,6 +86,11 @@ public class ProductionService {
         return "USR" + String.format("%03d", nextVal);
     }
 
+    private String generateRoleId() {
+        Long nextVal = jdbcTemplate.queryForObject("SELECT nextval('role_seq')", Long.class);
+        return "ROLE" + String.format("%03d", nextVal);
+    }
+
     private String generateMaterialId() {
         Long nextVal = jdbcTemplate.queryForObject("SELECT nextval('material_seq')", Long.class);
         return "MAT" + String.format("%03d", nextVal);
@@ -162,6 +167,10 @@ public class ProductionService {
 
     public List<Role> getAllRoles() {
         return roleRepository.findByIsOwnerNot(1);
+    }
+
+    public List<Role> getRolesFull() {
+        return roleRepository.findAll();
     }
 
     public List<Role> getOwner() {
@@ -587,6 +596,13 @@ public class ProductionService {
     }
 
     // =============== ROLE & PRIVILEGE =============
+    public Role insertRole(Role role) {
+        role.setId(generateRoleId());
+        role.setRoleName(role.getRoleName());
+        role.setIsOwner(role.getIsOwner());
+        return roleRepository.save(role);
+    }
+
     public Role updateRolePrivileges(String roleId, List<String> privilegeIds) {
         Role role = roleRepository.findById(roleId)
                 .orElseThrow(() -> new RuntimeException("Role not found: " + roleId));
