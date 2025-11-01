@@ -19,4 +19,6 @@ public interface OrderCatalogRepository extends CrudRepository<OrderCatalog, Lon
         WHERE oc.order.orderNo = :orderNo
     """)
     List<CatalogItemOrderDTO> findCatalogItemsByOrderNo(@Param("orderNo") String orderNo);
+
+    List<OrderCatalog> findByOrder_OrderNo(String orderNo);
 }

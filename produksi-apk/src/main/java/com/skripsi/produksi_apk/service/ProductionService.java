@@ -15,6 +15,7 @@ import com.skripsi.produksi_apk.entity.User;
 import com.skripsi.produksi_apk.model.CatalogItemOrderDTO;
 import com.skripsi.produksi_apk.model.MaterialCatalogDTO;
 import com.skripsi.produksi_apk.model.OrderCatalogDTO;
+import com.skripsi.produksi_apk.model.PrepOrderApprovalResult;
 import com.skripsi.produksi_apk.repository.*;
 
 import java.io.IOException;
@@ -578,22 +579,57 @@ public class ProductionService {
         preparationOrderRepository.delete(preparationOrder);
     }
 
-    public PreparationOrder updatePreparationOrderStatus(String id, String status) {
-        return preparationOrderRepository.findById(id).map(preparationOrder -> {
-            preparationOrder.setStatus(status);
-            if ("Ready to Process".equalsIgnoreCase(status)) {
-                Orders linkedOrder = preparationOrder.getOrders();
-                if (linkedOrder != null) {
-                    Orders existingOrder = orderRepository.findById(linkedOrder.getOrderNo()).orElse(null);
-                    if (existingOrder != null) {
-                        existingOrder.setStatus("On Progress");
-                        orderRepository.save(existingOrder);
+    public PrepOrderApprovalResult updatePreparationOrderStatus(String id, String status) {
+        return preparationOrderRepository.findById(id)
+            .map(preparationOrder -> {
+                preparationOrder.setStatus(status);
+
+                if ("Ready to Process".equalsIgnoreCase(status)) {
+                    Orders linkedOrder = preparationOrder.getOrders();
+                    if (linkedOrder != null) {
+                        List<OrderCatalog> orderCatalogs = orderCatalogRepository.findByOrder_OrderNo(linkedOrder.getOrderNo());
+
+                        for (OrderCatalog orderCatalog : orderCatalogs) {
+                            CatalogItem catalogItem = orderCatalog.getCatalogItem();
+                            int qtyOrder = orderCatalog.getQty();
+
+                            List<MaterialCatalog> materialCatalogs = materialCatalogRepository.findByCatalog_Id(catalogItem.getId());
+
+                            for (MaterialCatalog mc : materialCatalogs) {
+                                Material material = mc.getMaterial();
+                                int reqQtyPerCatalog = mc.getReqQty();
+                                int totalNeeded = qtyOrder * reqQtyPerCatalog;
+
+                                if (material.getStockQty() < totalNeeded) {
+                                    return new PrepOrderApprovalResult(false,
+                                        "Stok material " + material.getMaterialName() + " insufficient", null);
+                                }
+
+                                material.setStockQty(material.getStockQty() - totalNeeded);
+                                materialRepository.save(material);
+
+                                MaterialLog log = new MaterialLog();
+                                log.setMaterial(material);
+                                log.setQty(totalNeeded);
+                                log.setType("Keluar");
+                                log.setNote("Penggunaan material untuk Preparation Order " + preparationOrder.getId());
+                                log.setCreatedBy(preparationOrder.getProductionPic());
+                                log.setCreatedDate(new Date());
+                                materialLogRepository.save(log);
+                            }
+                        }
+
+                        linkedOrder.setStatus("On Progress");
+                        orderRepository.save(linkedOrder);
                     }
-                } 
-            }
-            return preparationOrderRepository.save(preparationOrder);
-        }).orElse(null);
+                }
+
+                preparationOrderRepository.save(preparationOrder);
+                return new PrepOrderApprovalResult(true, "Preparation Order approved.", preparationOrder);
+            })
+            .orElse(new PrepOrderApprovalResult(false, "Preparation Order tidak ditemukan.", null));
     }
+
 
     // =============== ROLE & PRIVILEGE =============
     public Role insertRole(Role role) {

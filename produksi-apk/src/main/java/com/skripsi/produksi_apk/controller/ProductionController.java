@@ -2,6 +2,7 @@ package com.skripsi.produksi_apk.controller;
 
 import java.io.IOException;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -29,6 +30,7 @@ import com.skripsi.produksi_apk.entity.PreparationOrder;
 import com.skripsi.produksi_apk.entity.Role;
 import com.skripsi.produksi_apk.entity.RolePrivileges;
 import com.skripsi.produksi_apk.entity.User;
+import com.skripsi.produksi_apk.model.PrepOrderApprovalResult;
 import com.skripsi.produksi_apk.service.ProductionService;
 
 import org.springframework.web.bind.annotation.RequestParam;
@@ -280,15 +282,21 @@ public class ProductionController {
     }
 
     @PutMapping("/update-preporder-status/{id}")
-    public ResponseEntity<PreparationOrder> updatePreparationOrderStatus(
+    public ResponseEntity<PrepOrderApprovalResult> updatePreparationOrderStatus(
             @PathVariable String id,
             @RequestBody Map<String, String> body) {
         
+
         String status = body.get("status");
-        System.out.println("Received status: " + status); 
-        PreparationOrder updated = productionService.updatePreparationOrderStatus(id, status);
-        return ResponseEntity.ok(updated);
+        PrepOrderApprovalResult result = productionService.updatePreparationOrderStatus(id, status);
+    
+        if(result.isSuccess()) {
+            return ResponseEntity.ok(result);
+        } else {
+            return ResponseEntity.badRequest().body(result);
+        }
     }
+
     
 
     // ROLE & PRIVILEGES
