@@ -584,8 +584,9 @@ public class ProductionService {
             .map(preparationOrder -> {
                 preparationOrder.setStatus(status);
 
-                if ("Ready to Process".equalsIgnoreCase(status)) {
+                if ("Finished".equalsIgnoreCase(status)) {
                     Orders linkedOrder = preparationOrder.getOrders();
+                    preparationOrder.setActualEndDate(new Date());
                     if (linkedOrder != null) {
                         List<OrderCatalog> orderCatalogs = orderCatalogRepository.findByOrder_OrderNo(linkedOrder.getOrderNo());
 
@@ -602,7 +603,7 @@ public class ProductionService {
 
                                 if (material.getStockQty() < totalNeeded) {
                                     return new PrepOrderApprovalResult(false,
-                                        "Stok material " + material.getMaterialName() + " insufficient", null);
+                                        "Material stock of " + material.getMaterialName() + " insufficient", null);
                                 }
 
                                 material.setStockQty(material.getStockQty() - totalNeeded);
@@ -619,13 +620,19 @@ public class ProductionService {
                             }
                         }
 
+                        linkedOrder.setStatus("Finished");
+                        orderRepository.save(linkedOrder);
+                    }
+                } else if ("Ready to Process".equalsIgnoreCase(status)) {
+                     Orders linkedOrder = preparationOrder.getOrders();
+                    if (linkedOrder != null) {
                         linkedOrder.setStatus("On Progress");
                         orderRepository.save(linkedOrder);
                     }
                 }
 
                 preparationOrderRepository.save(preparationOrder);
-                return new PrepOrderApprovalResult(true, "Preparation Order approved.", preparationOrder);
+                return new PrepOrderApprovalResult(true, "Preparation Order update success.", preparationOrder);
             })
             .orElse(new PrepOrderApprovalResult(false, "Preparation Order tidak ditemukan.", null));
     }

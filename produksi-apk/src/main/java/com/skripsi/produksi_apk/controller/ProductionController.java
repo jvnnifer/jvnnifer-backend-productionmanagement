@@ -285,8 +285,6 @@ public class ProductionController {
     public ResponseEntity<PrepOrderApprovalResult> updatePreparationOrderStatus(
             @PathVariable String id,
             @RequestBody Map<String, String> body) {
-        
-
         String status = body.get("status");
         PrepOrderApprovalResult result = productionService.updatePreparationOrderStatus(id, status);
     
